@@ -190,26 +190,17 @@
 
         /* --- ADAPTACIÓN PARA MÓVILES (RESPONSIVE) --- */
         @media (max-width: 768px) {
-            /* 1. Barra de navegación deslizable y más compacta */
             .navbar { gap: 8px; padding: 0 0.5rem; }
             .brand { font-size: 0.9rem; }
             .nav-btn { padding: 0 0.4rem; font-size: 0.8rem; }
-            
-            /* 2. Ajuste de la barra de herramientas (se apilan hacia abajo) */
             .toolbar { flex-direction: column; align-items: flex-start; gap: 15px; }
             .search-box, .search-input { width: 100%; }
             .search-input:focus { width: 100%; }
             #monthSelector { width: 100%; }
-            
-            /* 3. El modal (ventanita de registro) no se sale de la pantalla */
             .editor-box { width: 92%; padding: 1rem; }
             .form-row-split { flex-direction: column; gap: 0; }
-            
-            /* 4. Las tablas en el teléfono tendrán un scroll horizontal más suave */
             .sticky-col { min-width: 110px; }
             td .obs-dot { right: 5px; }
-            
-            /* 5. Los gráficos de la pestaña gerencia */
             .chart-container { padding: 10px 5px 20px 30px; }
             .year-split-container { flex-direction: column; }
             .month-card { min-width: 100%; }
@@ -276,12 +267,12 @@
                     </div>
                     
                     <div class="card">
-                        <h3>💾 Datos y Cierre 2025</h3>
-                        <p style="font-size:0.75rem; color:#64748b;">(El botón de cargar respaldo sigue activo por si necesitas cambiar datos)</p>
+                        <h3>☁️ Sincronización a la Nube</h3>
+                        <p style="font-size:0.75rem; color:#64748b;">Los datos ahora se guardan automáticamente en Firebase. Puedes respaldar de forma manual si lo deseas.</p>
                         <button onclick="downloadData()" class="btn-data btn-download">⬇️ Descargar Respaldo JSON</button>
                         <input type="file" id="backupInput" style="display:none" onchange="loadBackup(this)">
-                        <button onclick="document.getElementById('backupInput').click()" class="btn-data btn-upload">📂 Cargar Otro Respaldo</button>
-                        <button onclick="inspectData()" class="btn-data" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">🔍 Ver qué hay cargado</button>
+                        <button onclick="document.getElementById('backupInput').click()" class="btn-data btn-upload">📂 Cargar Respaldo y Subir a la Nube</button>
+                        <button onclick="inspectData()" class="btn-data" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">🔍 Ver qué hay en la Nube</button>
                         <button onclick="openBaseModal()" class="btn-data btn-base">💰 Acumulados Previos (2025)</button>
                         <button onclick="resetData()" class="btn-data btn-reset">⚠️ Borrar y Resetear Todo</button>
                     </div>
@@ -411,7 +402,24 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
     <script>
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEatS2GakJM3G-9l9nP00Pg1dts-BB2bU",
+            authDomain: "icgnube-7abb3.firebaseapp.com",
+            databaseURL: "https://icgnube-7abb3-default-rtdb.firebaseio.com",
+            projectId: "icgnube-7abb3",
+            storageBucket: "icgnube-7abb3.firebasestorage.app",
+            messagingSenderId: "523974615819",
+            appId: "1:523974615819:web:f50fe767270974f31d380e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        // ---------------------------------
+
         const DATA_INCRUSTADA = null; 
         
         const MONTHS_BASE = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -442,10 +450,35 @@
         let currentEdit = { empId: null, dayIdx: null };
         let isDirty = false;
 
+        // --- NUEVO INIT (CONECTA CON LA NUBE) ---
         function init() {
             if (DATA_INCRUSTADA) { loadParsedData(DATA_INCRUSTADA, true); return; }
-            const saved = localStorage.getItem('icg_master_v11'); 
-            if(saved) { try { loadParsedData(JSON.parse(saved), false); } catch(e) { setupDefault(); } } else { setupDefault(); }
+            
+            // Leemos la data desde Firebase
+            database.ref('icg_master_data').once('value').then((snapshot) => {
+                const saved = snapshot.val();
+                if(saved) { 
+                    try { loadParsedData(saved, false); } catch(e) { setupDefault(); } 
+                } else { 
+                    setupDefault(); 
+                }
+            }).catch((error) => {
+                console.error("Error conectando a Firebase:", error);
+                alert("Hubo un problema de conexión con la Nube. Cargando sistema en blanco.");
+                setupDefault();
+            });
+        }
+
+        // --- NUEVO SAVE (GUARDA EN LA NUBE) ---
+        function save() { 
+            database.ref('icg_master_data').set(appData)
+                .then(() => {
+                    setDirty(false);
+                })
+                .catch((error) => {
+                    console.error("Error guardando en Firebase:", error);
+                    alert("⚠️ Error de conexión: No se pudo guardar el cambio en la Nube.");
+                });
         }
 
         function setupDefault() {
@@ -505,7 +538,6 @@
             renderConfigLists(); handleMonthChange();
         }
 
-        function save() { localStorage.setItem('icg_master_v11', JSON.stringify(appData)); setDirty(false); }
         function closeEditor() { document.getElementById('cellEditorModal').classList.remove('open'); }
         function setDirty(val) { isDirty = val; const dot = document.getElementById('unsavedDot'); if(isDirty) dot.classList.add('visible'); else dot.classList.remove('visible'); }
 
@@ -687,7 +719,6 @@
             });
         }
 
-        // --- IMPRESIÓN DE SUGERENCIAS ---
         function printSuggestions() {
             const printArea = document.getElementById('printSuggestionsSection');
             const p = document.getElementById('monthSelector').value;
@@ -697,17 +728,12 @@
             html += `<div class="sug-sub">Generado el: ${new Date().toLocaleDateString()} | Periodo Base: ${p}</div>`;
             html += `<div style="font-size:9pt; margin-bottom:15px;"><i>Nota: Ordenados por prioridad de asignación (Menor Ingreso Mes Actual > Menor Ingreso Mes Anterior > Menor Anual).</i></div>`;
             
-            // DICCIONARIO DE PLURALES CORRECTOS
-            const pluralMap = {
-                "Supervisor": "Supervisores",
-                "Tecnico de Seguridad": "Técnicos de Seguridad",
-                "Inspector": "Inspectores"
-            };
+            const pluralMap = { "Supervisor": "Supervisores", "Tecnico de Seguridad": "Técnicos de Seguridad", "Inspector": "Inspectores" };
 
             ROLES.forEach(role => {
                 const cardTable = document.getElementById(`table-sug-${role}`);
                 if (cardTable) {
-                    const title = pluralMap[role] || role + "s"; // Traducción automática
+                    const title = pluralMap[role] || role + "s";
                     html += `<div class="print-block">`; 
                     html += `<h3 style="margin-bottom:5px; border-bottom:1px solid #ccc; page-break-after: avoid;">${title}</h3>`;
                     html += `<table class="sug-print-table">`;
@@ -745,13 +771,11 @@
             document.body.classList.remove('printing-payroll');
         }
 
-        // --- ANALYTICS MEJORADO ---
         function renderAnalytics() {
             let stats = { 2025: { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } }, 2026: { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } } };
             let siteMap = {};
             let monthStats = {};
 
-            // Acumulados Base
             appData.employees.forEach(emp => {
                 const hist = appData.historical2025[emp.id];
                 if (hist && hist.year > 0) {
@@ -760,14 +784,10 @@
                 }
             });
 
-            // Procesar Records
             PERIODS.forEach(p => {
                 if(!appData.records[p]) return;
                 const year = p.includes("2025") ? 2025 : 2026;
-                
-                if (year === 2026) {
-                    if (!monthStats[p]) monthStats[p] = { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } };
-                }
+                if (year === 2026) { if (!monthStats[p]) monthStats[p] = { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } }; }
 
                 Object.keys(appData.records[p]).forEach(eId => {
                     const emp = appData.employees.find(x => x.id == eId);
@@ -775,43 +795,28 @@
                     appData.records[p][eId].forEach(r => {
                         if(r && r.amount > 0) {
                             stats[year].total += r.amount;
-                            
-                            // AQUI ESTA LA CORRECCIÓN: Toma el rol ejercido, y si no existe, usa el rol del perfil
                             let actualRole = r.role || emp.role;
-
-                            if(stats[year].roles[actualRole] !== undefined) {
-                                stats[year].roles[actualRole] += r.amount;
-                            }
-                            
-                            // Acumular para las tarjetas de cada mes de 2026
+                            if(stats[year].roles[actualRole] !== undefined) { stats[year].roles[actualRole] += r.amount; }
                             if (year === 2026) {
                                 monthStats[p].total += r.amount;
-                                if(monthStats[p].roles[actualRole] !== undefined) {
-                                    monthStats[p].roles[actualRole] += r.amount;
-                                }
+                                if(monthStats[p].roles[actualRole] !== undefined) { monthStats[p].roles[actualRole] += r.amount; }
                             }
-
                             if(!siteMap[r.site]) siteMap[r.site] = 0; siteMap[r.site] += r.amount;
                         }
                     });
                 });
             });
 
-            // Render Tarjetas Anuales
             const container = document.getElementById('analyticsContainer');
             container.innerHTML = `${renderYearCard(2025, stats[2025])}${renderYearCard(2026, stats[2026])}`;
 
-            // Render Tarjetas Mensuales 2026
             const monthContainer = document.getElementById('monthlyAnalyticsContainer');
             let monthHtml = '';
             Object.keys(monthStats).forEach(m => {
-                if (monthStats[m].total > 0) {
-                    monthHtml += renderMonthCard(m, monthStats[m]);
-                }
+                if (monthStats[m].total > 0) { monthHtml += renderMonthCard(m, monthStats[m]); }
             });
             monthContainer.innerHTML = monthHtml;
 
-            // Render Site Chart
             const sitesContainer = document.getElementById('sitesChart'); sitesContainer.innerHTML = '';
             const totalGlobal = stats[2025].total + stats[2026].total;
             Object.keys(siteMap).sort((a,b)=>siteMap[b]-siteMap[a]).forEach(s => {
@@ -825,24 +830,17 @@
         }
 
         function renderMonthCard(month, data) {
-            // AQUI ESTA LA CORRECCIÓN: Filtra los cargos que tienen $0 para que no estorben visualmente
             const rolesHtml = Object.keys(data.roles)
                 .filter(r => data.roles[r] > 0)
                 .map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`)
                 .join('');
-                
             return `<div class="month-card"><h4 style="margin:0; color:#10b981">${month}</h4><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:10px; font-size: 0.85rem;">${rolesHtml || '<div style="color:#94a3b8; font-style:italic;">Sin registros</div>'}</div></div>`;
         }
 
         function renderAnalyticsCharts() {
-            // AQUI ESTA LA CORRECCIÓN: Se filtra DICIEMBRE 2025 de los gráficos para no dañar la escala
             const chartPeriods = PERIODS.filter(p => p !== "DICIEMBRE 2025");
-            
-            // Preparar datos mensuales
             const monthlyData = chartPeriods.map(p => {
-                let mTotal = 0;
-                let mRoles = { 'Supervisor': 0, 'Tecnico de Seguridad': 0, 'Inspector': 0 };
-                
+                let mTotal = 0; let mRoles = { 'Supervisor': 0, 'Tecnico de Seguridad': 0, 'Inspector': 0 };
                 if(appData.records[p]) {
                     Object.keys(appData.records[p]).forEach(eId => {
                         const emp = appData.employees.find(x => x.id == eId);
@@ -859,11 +857,9 @@
                 return { label: p, total: mTotal, roles: mRoles };
             });
 
-            // Gráfico 1: Global
             const globalSeries = [{ name: "Total Global", values: monthlyData.map(d => d.total), color: "#2563eb", id: "g-total", visible: true }];
             drawSVG(document.getElementById('chart-GlobalMonthly'), document.getElementById('legend-GlobalMonthly'), globalSeries, chartPeriods);
 
-            // Gráfico 2: Por Roles (INTERACTIVO)
             const roleSeries = [
                 { name: "Supervisor", values: monthlyData.map(d => d.roles['Supervisor']), color: ROLE_COLORS['Supervisor'], id: "r-sup", visible: !hiddenSeries["r-sup"] },
                 { name: "Técnico", values: monthlyData.map(d => d.roles['Tecnico de Seguridad']), color: ROLE_COLORS['Tecnico de Seguridad'], id: "r-tec", visible: !hiddenSeries["r-tec"] },
@@ -872,27 +868,17 @@
             drawSVG(document.getElementById('chart-RoleMonthly'), document.getElementById('legend-RoleMonthly'), roleSeries, chartPeriods);
         }
 
-        function renderYearCard(year, data) {
-            return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':'#2563eb'}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`;
-        }
+        function renderYearCard(year, data) { return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':'#2563eb'}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`; }
 
-        // --- CHART ENGINE ---
         let hiddenSeries = {};
         function toggleSeries(seriesId) { if (hiddenSeries[seriesId]) { delete hiddenSeries[seriesId]; } else { hiddenSeries[seriesId] = true; } renderAllCharts(); renderAnalytics(); }
-
-        function renderAllCharts() { 
-            // Graficos individuales por empleado
-            renderChart('Supervisor'); renderChart('Tecnico de Seguridad'); renderChart('Inspector'); 
-        }
+        function renderAllCharts() { renderChart('Supervisor'); renderChart('Tecnico de Seguridad'); renderChart('Inspector'); }
 
         function renderChart(roleFilter) {
             const idBase = roleFilter.split(' ')[0];
             const container = document.getElementById(`chart-${idBase}`); const legCont = document.getElementById(`legend-${idBase}`); 
-            if(!container) return;
-            container.innerHTML = ''; legCont.innerHTML = '';
+            if(!container) return; container.innerHTML = ''; legCont.innerHTML = '';
             const employees = appData.employees.filter(e => e.role === roleFilter);
-            
-            // AQUI ESTA LA CORRECCIÓN: Filtro aplicado también a los gráficos individuales
             const chartPeriods = PERIODS.filter(p => p !== "DICIEMBRE 2025");
 
             const dataSeries = employees.map((e, idx) => {
@@ -908,13 +894,10 @@
 
         function drawSVG(container, legCont, dataSeries, labels) {
             container.innerHTML = ''; legCont.innerHTML = '';
-            let maxVal = 0; 
-            dataSeries.forEach(s => { if(s.visible) maxVal = Math.max(maxVal, ...s.values); });
+            let maxVal = 0; dataSeries.forEach(s => { if(s.visible) maxVal = Math.max(maxVal, ...s.values); });
             if(maxVal === 0) maxVal = 1000;
-
             const w = container.clientWidth; const h = container.clientHeight; const padL=40, padB=25, padT=10; const chW=w-padL-10, chH=h-padB-padT;
             const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("class", "chart-svg");
-            
             for(let i=0; i<=5; i++) {
                 const y = (padT+chH) - (i/5*chH); const v = Math.round((i/5)*maxVal);
                 const l = document.createElementNS(ns,"line"); l.setAttribute("x1",padL); l.setAttribute("y1",y); l.setAttribute("x2",w); l.setAttribute("y2",y); l.setAttribute("class","grid-line"); svg.appendChild(l);
@@ -926,18 +909,12 @@
                 const t = document.createElementNS(ns,"text"); t.setAttribute("x",x); t.setAttribute("y",h-5); t.setAttribute("text-anchor","middle"); t.setAttribute("class","axis-text");
                 t.textContent = p.includes("2025") ? "DIC'25" : p.split(' ')[0].substr(0,3); svg.appendChild(t);
             });
-
             dataSeries.forEach(s => {
-                const li = document.createElement("div"); 
-                li.className = `legend-item ${s.visible ? '' : 'inactive'}`; 
+                const li = document.createElement("div"); li.className = `legend-item ${s.visible ? '' : 'inactive'}`; 
                 li.innerHTML=`<div class="legend-color" style="background:${s.color}"></div><div class="legend-text">${s.name}</div>`;
-                li.onclick = () => toggleSeries(s.id); 
-                li.onmouseenter=()=> { if(s.visible) highlight(svg,s.id); }; 
-                li.onmouseleave=()=> { if(s.visible) unhighlight(svg); }; 
+                li.onclick = () => toggleSeries(s.id); li.onmouseenter=()=> { if(s.visible) highlight(svg,s.id); }; li.onmouseleave=()=> { if(s.visible) unhighlight(svg); }; 
                 legCont.appendChild(li);
-
                 if(!s.visible) return; 
-
                 let d=""; s.values.forEach((v,i)=>{ const x=padL+i*xStep; const y=(padT+chH)-(v/maxVal)*chH; d+=(i===0?"M":"L")+` ${x} ${y}`; 
                     const pt=document.createElementNS(ns,"circle"); pt.setAttribute("cx",x); pt.setAttribute("cy",y); pt.setAttribute("r",3); pt.setAttribute("stroke",s.color); pt.setAttribute("class",`chart-point point-${s.id}`);
                     pt.addEventListener('mouseenter',(e)=>showTooltip(e,s.name,labels[i],v)); pt.addEventListener('mouseleave',hideTooltip); svg.appendChild(pt);
@@ -953,7 +930,6 @@
         function showTooltip(e,n,p,v){tt.style.display='block';tt.style.left=(e.pageX+10)+'px';tt.style.top=(e.pageY-20)+'px';tt.innerHTML=`<strong>${n}</strong><br>${p}: $${v}`;}
         function hideTooltip(){tt.style.display='none';}
 
-        // --- FUNCIONES AUXILIARES ---
         function renderL(id,arr,fmt,del){const el=document.getElementById(id);if(!el)return;el.innerHTML='';arr.forEach((x,i)=>{const l=document.createElement('li');l.className='list-item';l.innerHTML=fmt(x);const b=document.createElement('button');b.className='delete-btn';b.innerText='✕';b.onclick=()=>{del(x.id?x.id:i);save();renderConfigLists();};l.appendChild(b);el.appendChild(l);});}
         function renderConfigLists(){renderL('employeeList',appData.employees,e=>`<div style="display:flex;align-items:center;width:100%;gap:10px;"><div style="flex:1;min-width:120px;"><b>${e.name}</b></div><select class="role-select" onchange="changeRole(${e.id},this.value)"><option value="Supervisor" ${e.role==='Supervisor'?'selected':''}>Supervisor</option><option value="Tecnico de Seguridad" ${e.role==='Tecnico de Seguridad'?'selected':''}>Técnico</option><option value="Inspector" ${e.role==='Inspector'?'selected':''}>Inspector</option></select><select class="status-select ${getStatusClass(e.status)}" onchange="changeStatus(${e.id},this.value)"><option value="Disponible" ${e.status==='Disponible'?'selected':''}>🟢 Disp.</option><option value="En Guardia" ${e.status==='En Guardia'?'selected':''}>🟡 Guardia</option><option value="Vacaciones" ${e.status==='Vacaciones'?'selected':''}>🔴 Vacac.</option><option value="Reposo" ${e.status==='Reposo'?'selected':''}>🔴 Reposo</option></select></div>`,(id)=>{deleteEmployee(id);});renderL('siteList',appData.sites,s=>s,i=>appData.sites.splice(i,1));renderL('activityList',appData.activities,a=>a,i=>appData.activities.splice(i,1));}
         function getStatusClass(s){if(s==='Disponible')return 'st-active';if(s==='En Guardia')return 'st-busy';return 'st-vacation';}
@@ -971,11 +947,37 @@
         function deleteEmployee(id){if(confirm('¿Eliminar empleado? Esto borrará su historial.')){appData.employees=appData.employees.filter(e=>e.id!==id);save();renderConfigLists();}}
         function exportToExcel(){const table=document.getElementById('payrollTable');const p=document.getElementById('monthSelector').value;const html=table.outerHTML;const url='data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(html);const downloadLink=document.createElement("a");document.body.appendChild(downloadLink);downloadLink.href=url;downloadLink.download=`Nomina_${p}.xls`;downloadLink.click();document.body.removeChild(downloadLink);}
         async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v11.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
-        function loadBackup(input){const reader=new FileReader();reader.onload=e=>{let raw=e.target.result;if(raw.charCodeAt(0)===0xFEFF){raw=raw.slice(1);}try{const parsed=JSON.parse(raw);loadParsedData(parsed,false);alert("✅ Archivo cargado correctamente.");}catch(x){console.error(x);alert("❌ Error: "+x.message);}};reader.readAsText(input.files[0]);}
-        function inspectData(){if(!appData.records){alert("No hay datos cargados.");return;}let msg="📅 PERIODOS ENCONTRADOS:\n\n";Object.keys(appData.records).forEach(k=>{const count=Object.values(appData.records[k]).reduce((acc,curr)=>acc+(curr?curr.filter(x=>x&&x.amount>0).length:0),0);msg+=`• ${k}: ${count} registros\n`;});alert(msg);}
+        
+        // --- NUEVO LOAD (CARGA Y SUBE A LA NUBE AUTOMÁTICAMENTE) ---
+        function loadBackup(input){
+            const reader=new FileReader();
+            reader.onload=e=>{
+                let raw=e.target.result;
+                if(raw.charCodeAt(0)===0xFEFF){raw=raw.slice(1);}
+                try {
+                    const parsed=JSON.parse(raw);
+                    loadParsedData(parsed, false);
+                    save(); // Guarda el JSON automáticamente en la nube
+                    alert("✅ Archivo cargado correctamente y sincronizado con la Nube.");
+                } catch(x) {
+                    console.error(x); alert("❌ Error: "+x.message);
+                }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        function inspectData(){if(!appData.records){alert("No hay datos cargados.");return;}let msg="📅 PERIODOS ENCONTRADOS EN LA NUBE:\n\n";Object.keys(appData.records).forEach(k=>{const count=Object.values(appData.records[k]).reduce((acc,curr)=>acc+(curr?curr.filter(x=>x&&x.amount>0).length:0),0);msg+=`• ${k}: ${count} registros\n`;});alert(msg);}
         function openBaseModal(){const container=document.getElementById('baseList');container.innerHTML='';appData.employees.forEach(emp=>{const hist=appData.historical2025[emp.id]||{year:0};const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.innerHTML=`<span style="font-size:0.85rem; font-weight:bold;">${emp.name}</span><input type="number" id="base_year_${emp.id}" value="${hist.year}" class="compact-input" style="width:100px; text-align:right;">`;container.appendChild(row);});document.getElementById('baseModal').classList.add('open');}
         function saveBases(){appData.employees.forEach(emp=>{const val=parseFloat(document.getElementById(`base_year_${emp.id}`).value)||0;if(!appData.historical2025[emp.id])appData.historical2025[emp.id]={month:0,year:0};appData.historical2025[emp.id].year=val;});save();document.getElementById('baseModal').classList.remove('open');renderAnalytics();}
-        function resetData(){if(confirm("Borrar todo?")){localStorage.removeItem('icg_master_v11');location.reload();}}
+        
+        // --- NUEVO RESET (BORRA DE LA NUBE) ---
+        function resetData(){
+            if(confirm("⚠️ ¿Borrar todo de la nube? Esto no se puede deshacer.")){
+                database.ref('icg_master_data').remove().then(() => {
+                    location.reload();
+                });
+            }
+        }
 
         init();
     </script>
