@@ -188,6 +188,32 @@
         .other-input.visible { display: block; }
         .btn-save { width: 100%; padding: 0.6rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 1rem;}
 
+        /* --- ADAPTACIÓN PARA MÓVILES (RESPONSIVE) --- */
+        @media (max-width: 768px) {
+            /* 1. Barra de navegación deslizable y más compacta */
+            .navbar { gap: 8px; padding: 0 0.5rem; }
+            .brand { font-size: 0.9rem; }
+            .nav-btn { padding: 0 0.4rem; font-size: 0.8rem; }
+            
+            /* 2. Ajuste de la barra de herramientas (se apilan hacia abajo) */
+            .toolbar { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .search-box, .search-input { width: 100%; }
+            .search-input:focus { width: 100%; }
+            #monthSelector { width: 100%; }
+            
+            /* 3. El modal (ventanita de registro) no se sale de la pantalla */
+            .editor-box { width: 92%; padding: 1rem; }
+            .form-row-split { flex-direction: column; gap: 0; }
+            
+            /* 4. Las tablas en el teléfono tendrán un scroll horizontal más suave */
+            .sticky-col { min-width: 110px; }
+            td .obs-dot { right: 5px; }
+            
+            /* 5. Los gráficos de la pestaña gerencia */
+            .chart-container { padding: 10px 5px 20px 30px; }
+            .year-split-container { flex-direction: column; }
+            .month-card { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
