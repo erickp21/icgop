@@ -174,7 +174,6 @@
         .big-number { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
         .role-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
         
-        /* NUEVAS TARJETAS MENSUALES */
         .month-card { flex: 1; min-width: 250px; background: white; border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 3px solid #10b981; }
         .month-card .big-number { font-size: 1.8rem; margin: 8px 0; }
 
@@ -190,17 +189,40 @@
 
         /* --- ADAPTACIÓN PARA MÓVILES (RESPONSIVE) --- */
         @media (max-width: 768px) {
-            .navbar { gap: 8px; padding: 0 0.5rem; }
-            .brand { font-size: 0.9rem; }
-            .nav-btn { padding: 0 0.4rem; font-size: 0.8rem; }
+            .navbar {
+                order: 2;
+                height: 65px;
+                padding: 0;
+                padding-bottom: env(safe-area-inset-bottom);
+                justify-content: space-between;
+            }
+            .content-area { order: 1; }
+            .brand-container { display: none; }
+            
+            .nav-btn {
+                flex: 1;
+                padding: 5px 2px;
+                font-size: 0.65rem;
+                white-space: normal;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                line-height: 1.2;
+            }
+            .unsaved-dot { top: 5px; right: 50%; transform: translateX(15px); }
+            
             .toolbar { flex-direction: column; align-items: flex-start; gap: 15px; }
             .search-box, .search-input { width: 100%; }
             .search-input:focus { width: 100%; }
             #monthSelector { width: 100%; }
+            
             .editor-box { width: 92%; padding: 1rem; }
             .form-row-split { flex-direction: column; gap: 0; }
+            
             .sticky-col { min-width: 110px; }
             td .obs-dot { right: 5px; }
+            
             .chart-container { padding: 10px 5px 20px 30px; }
             .year-split-container { flex-direction: column; }
             .month-card { min-width: 100%; }
@@ -450,11 +472,10 @@
         let currentEdit = { empId: null, dayIdx: null };
         let isDirty = false;
 
-        // --- NUEVO INIT (CONECTA CON LA NUBE) ---
+        // --- INIT CONECTADO A LA NUBE ---
         function init() {
             if (DATA_INCRUSTADA) { loadParsedData(DATA_INCRUSTADA, true); return; }
             
-            // Leemos la data desde Firebase
             database.ref('icg_master_data').once('value').then((snapshot) => {
                 const saved = snapshot.val();
                 if(saved) { 
@@ -469,7 +490,7 @@
             });
         }
 
-        // --- NUEVO SAVE (GUARDA EN LA NUBE) ---
+        // --- SAVE CONECTADO A LA NUBE ---
         function save() { 
             database.ref('icg_master_data').set(appData)
                 .then(() => {
@@ -948,7 +969,7 @@
         function exportToExcel(){const table=document.getElementById('payrollTable');const p=document.getElementById('monthSelector').value;const html=table.outerHTML;const url='data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(html);const downloadLink=document.createElement("a");document.body.appendChild(downloadLink);downloadLink.href=url;downloadLink.download=`Nomina_${p}.xls`;downloadLink.click();document.body.removeChild(downloadLink);}
         async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v11.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
         
-        // --- NUEVO LOAD (CARGA Y SUBE A LA NUBE AUTOMÁTICAMENTE) ---
+        // --- LOAD (CARGA Y SUBE A LA NUBE AUTOMÁTICAMENTE) ---
         function loadBackup(input){
             const reader=new FileReader();
             reader.onload=e=>{
@@ -970,7 +991,7 @@
         function openBaseModal(){const container=document.getElementById('baseList');container.innerHTML='';appData.employees.forEach(emp=>{const hist=appData.historical2025[emp.id]||{year:0};const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.innerHTML=`<span style="font-size:0.85rem; font-weight:bold;">${emp.name}</span><input type="number" id="base_year_${emp.id}" value="${hist.year}" class="compact-input" style="width:100px; text-align:right;">`;container.appendChild(row);});document.getElementById('baseModal').classList.add('open');}
         function saveBases(){appData.employees.forEach(emp=>{const val=parseFloat(document.getElementById(`base_year_${emp.id}`).value)||0;if(!appData.historical2025[emp.id])appData.historical2025[emp.id]={month:0,year:0};appData.historical2025[emp.id].year=val;});save();document.getElementById('baseModal').classList.remove('open');renderAnalytics();}
         
-        // --- NUEVO RESET (BORRA DE LA NUBE) ---
+        // --- RESET (BORRA DE LA NUBE) ---
         function resetData(){
             if(confirm("⚠️ ¿Borrar todo de la nube? Esto no se puede deshacer.")){
                 database.ref('icg_master_data').remove().then(() => {
