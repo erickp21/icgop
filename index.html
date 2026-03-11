@@ -6,15 +6,15 @@
     <title>ICG Master V11.25 - Plurales Corregidos</title>
     <style>
         :root {
-            --primary: #0f172a; 
-            --accent: #2563eb;  
+            --primary: #585858; /* Gris oscuro carbón del logo */
+            --accent: #F29100;  /* Naranja vibrante del logo */
             --bg: #f8fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
             --text: #334155;
             --danger: #ef4444;
             --success: #10b981;
-            --warning: #f59e0b;
+            --warning: #ffb84d; /* Un naranja más claro/amarillo para warning, derivado del accent */
         }
 
         body {
@@ -36,19 +36,22 @@
             body { background: white; height: auto; overflow: visible; }
             @page { margin: 10mm; size: auto; }
 
+            /* ESTILOS TABLA NÓMINA */
             body.printing-payroll #printSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11pt; font-family: 'Times New Roman', serif; }
             .print-table th { border: 1px solid black; padding: 8px; background-color: #f0f0f0 !important; font-weight: bold; text-align: center; color: black; }
             .print-table td { border: 1px solid black; padding: 6px; color: black; }
             
+            /* ESTILOS TABLA SUGERENCIAS */
             body.printing-suggestions #printSuggestionsSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .sug-print-table { width: 100%; border-collapse: collapse; font-size: 10pt; font-family: sans-serif; margin-bottom: 5px; }
-            .sug-print-table th { background: #1e293b !important; color: white !important; padding: 8px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .sug-print-table th { background: var(--primary) !important; color: white !important; padding: 8px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .sug-print-table td { border-bottom: 1px solid #ccc; padding: 6px; color: black; }
-            .sug-header { font-size: 18pt; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #2563eb; color: #0f172a; padding-bottom: 5px;}
+            .sug-header { font-size: 18pt; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--accent); color: var(--primary); padding-bottom: 5px;}
             .sug-sub { font-size: 10pt; color: #64748b; margin-bottom: 20px; }
             .badge-print { font-size: 8pt; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; }
             
+            /* CLAVE PARA EL SALTO DE PÁGINA */
             .print-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 20px; }
         }
 
@@ -126,6 +129,7 @@
         .dashboard-container { padding: 1.5rem; background: #f1f5f9; min-height: 100%; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
         .dash-card { background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 3px solid var(--accent); }
+        .dash-title { color: var(--primary); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px;}
         .rank-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         .rank-table th { text-align: center; color: #64748b; border-bottom: 1px solid var(--border); padding: 5px; } 
         .rank-table th:first-child { text-align: left; }
@@ -134,8 +138,8 @@
         .badge-low { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
         .badge-status-busy { background: #fef3c7; color: #b45309; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; margin-right: 5px; }
         .badge-shift { font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: 600; margin-left: 5px; }
-        .shift-day { background: #fef3c7; color: #b45309; }
-        .shift-night { background: #e0e7ff; color: #3730a3; }
+        .shift-day { color: var(--accent); }
+        .shift-night { color: var(--primary); }
         .money { font-family: monospace; font-weight: 600; text-align: center !important; }
         .shift-info { font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px; }
 
@@ -168,16 +172,18 @@
         .year-split-container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
         .year-card { flex: 1; min-width: 300px; background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid; }
         .year-card.y2025 { border-color: #64748b; }
-        .year-card.y2026 { border-color: #2563eb; }
+        .year-card.y2026 { border-color: var(--accent); }
         .big-number { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
         .role-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
         
         .month-card { flex: 1; min-width: 250px; background: white; border-radius: 8px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 3px solid #10b981; }
+        .month-card h4 { color: #10b981; margin: 0; }
         .month-card .big-number { font-size: 1.8rem; margin: 8px 0; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-overlay.open { display: flex; }
         .editor-box { background: white; padding: 1.5rem; border-radius: 8px; width: 350px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .editor-box h4 { color: var(--primary); margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px;}
         .form-row-split { display: flex; gap: 10px; }
         .form-group { margin-bottom: 0.8rem; flex: 1; }
         .form-control { width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
@@ -240,7 +246,7 @@
 
     <nav class="navbar">
         <div class="brand-container">
-            <img src="https://cdn-icons-png.flaticon.com/512/3096/3096998.png" alt="Logo" class="logo-img">
+            <img src="image_0.png" alt="Logo ICG" class="logo-img">
             <div class="brand">ICG GESTOR V11.25</div>
         </div>
         
@@ -465,7 +471,6 @@
         let currentEdit = { empId: null, dayIdx: null };
         let isDirty = false;
         
-        // --- VARIABLE PARA GUARDAR DATOS COPIADOS ---
         let copiedRecordData = null;
 
         function showToast(msg) {
@@ -496,7 +501,7 @@
             database.ref('icg_master_data').set(appData)
                 .then(() => {
                     setDirty(false);
-                    showToast("☁️ ✅ Guardado en la nube"); // NOTIFICACIÓN AL GUARDAR
+                    showToast("☁️ ✅ Guardado en la nube");
                 })
                 .catch((error) => {
                     console.error("Error guardando en Firebase:", error);
@@ -630,8 +635,8 @@
                     } else if (rec && rec.linked) { cells += `<td class="data-cell" style="background:#f1f5f9;">-</td>`; }
                     else {
                         const amt = rec ? rec.amount : 0; mTotal += amt; let shiftIcon = '';
-                        if(rec && rec.shift === 'Diurno') shiftIcon = '<span style="color:#f59e0b; font-size:0.6rem;">☀</span>';
-                        if(rec && rec.shift === 'Nocturno') shiftIcon = '<span style="color:#4338ca; font-size:0.6rem;">☾</span>';
+                        if(rec && rec.shift === 'Diurno') shiftIcon = '<span class="shift-day" style="font-size:0.6rem;">☀</span>';
+                        if(rec && rec.shift === 'Nocturno') shiftIcon = '<span class="shift-night" style="font-size:0.6rem;">☾</span>';
                         cells += `<td class="data-cell day-col ${amt>0?'has-data':''}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${(rec&&rec.obs)?'<div class="obs-dot"></div>':''}${amt>0?amt:''}${shiftIcon}</td>`;
                     }
                 }
@@ -669,7 +674,6 @@
             document.getElementById('cellEditorModal').classList.add('open');
         }
 
-        // --- FUNCIONES DE COPIAR, PEGAR Y BORRAR ---
         function copyRecord() {
             copiedRecordData = {
                 span: parseInt(document.getElementById('editorEndDay').value) - parseInt(document.getElementById('editorStartDay').value),
@@ -940,7 +944,7 @@
                 return { label: p, total: mTotal, roles: mRoles };
             });
 
-            const globalSeries = [{ name: "Total Global", values: monthlyData.map(d => d.total), color: "#2563eb", id: "g-total", visible: true }];
+            const globalSeries = [{ name: "Total Global", values: monthlyData.map(d => d.total), color: var(--accent), id: "g-total", visible: true }];
             drawSVG(document.getElementById('chart-GlobalMonthly'), document.getElementById('legend-GlobalMonthly'), globalSeries, chartPeriods);
 
             const roleSeries = [
@@ -951,7 +955,7 @@
             drawSVG(document.getElementById('chart-RoleMonthly'), document.getElementById('legend-RoleMonthly'), roleSeries, chartPeriods);
         }
 
-        function renderYearCard(year, data) { return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':'#2563eb'}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`; }
+        function renderYearCard(year, data) { return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':var(--accent)}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`; }
 
         let hiddenSeries = {};
         function toggleSeries(seriesId) { if (hiddenSeries[seriesId]) { delete hiddenSeries[seriesId]; } else { hiddenSeries[seriesId] = true; } renderAllCharts(); renderAnalytics(); }
