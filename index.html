@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICG Master V11.25 - Plurales Corregidos</title>
+    <title>ICG Master V1.0</title>
     <style>
         :root {
-            --primary: #585858; /* Gris oscuro carbón del logo */
-            --accent: #F29100;  /* Naranja vibrante del logo */
+            --primary: #585858; 
+            --accent: #F29100;  
             --bg: #f8fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -188,7 +188,6 @@
         .other-input.visible { display: block; }
         .btn-save { width: 100%; padding: 0.6rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 1rem;}
 
-        /* --- NOTIFICACIÓN TOAST (NUBE) --- */
         #toastNotif {
             position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #059669; color: white; padding: 10px 20px; border-radius: 30px;
@@ -198,7 +197,6 @@
         }
         #toastNotif.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        /* --- ADAPTACIÓN PARA MÓVILES (RESPONSIVE) --- */
         @media (max-width: 768px) {
             .navbar { order: 2; height: 65px; padding: 0; padding-bottom: env(safe-area-inset-bottom); justify-content: space-between; }
             .content-area { order: 1; }
@@ -208,7 +206,7 @@
             .toolbar { flex-direction: column; align-items: flex-start; gap: 15px; }
             .search-box, .search-input { width: 100%; }
             .search-input:focus { width: 100%; }
-            #monthSelector { width: 100%; }
+            #monthSelector, #monthSelectorSug { width: 100%; }
             .editor-box { width: 92%; padding: 1rem; }
             .form-row-split { flex-direction: column; gap: 0; }
             .sticky-col { min-width: 110px; }
@@ -244,7 +242,7 @@
     <nav class="navbar">
         <div class="brand-container">
             <img src="logo.png" alt="Logo ICG" class="logo-img">
-            <div class="brand">ICG GESTOR V11.25</div>
+            <div class="brand">ICG GESTOR V1.0</div>
         </div>
         
         <button class="nav-btn active" onclick="switchTab('config')">
@@ -310,7 +308,7 @@
             <div class="toolbar">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <label><strong>Periodo:</strong></label>
-                    <select id="monthSelector" class="compact-input" style="width:160px; font-weight:bold;" onchange="handleMonthChange()"></select>
+                    <select id="monthSelector" class="compact-input" style="width:160px; font-weight:bold;" onchange="syncMonths(this.value)"></select>
                 </div>
 
                 <div class="search-box">
@@ -338,8 +336,12 @@
         </section>
 
         <section id="tab-sugerencias" class="view-section">
-            <div class="toolbar" style="justify-content: flex-end;">
-                 <button class="compact-btn" style="background:var(--primary); color:white;" onclick="printSuggestions()">🖨️ Imprimir Reporte de Guardias</button>
+            <div class="toolbar" style="justify-content: space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label><strong>Periodo:</strong></label>
+                    <select id="monthSelectorSug" class="compact-input" style="width:160px; font-weight:bold;" onchange="syncMonths(this.value)"></select>
+                </div>
+                <button class="compact-btn" style="background:var(--primary); color:white;" onclick="printSuggestions()">🖨️ Imprimir Reporte</button>
             </div>
             <div class="dashboard-container">
                 <h2 style="margin-top:0; color:var(--primary);">💡 Asignación de Guardias</h2>
@@ -424,7 +426,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBEatS2GakJM3G-9l9nP00Pg1dts-BB2bU",
             authDomain: "icgnube-7abb3.firebaseapp.com",
@@ -436,7 +437,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        // ---------------------------------
 
         const DATA_INCRUSTADA = null; 
         
@@ -467,7 +467,6 @@
         let appData = { employees: [...DEFAULT_EMPLOYEES], sites: [...DEFAULT_SITES], activities: [...DEFAULT_ACTIVITIES], records: {}, historical2025: {} };
         let currentEdit = { empId: null, dayIdx: null };
         let isDirty = false;
-        
         let copiedRecordData = null;
 
         function showToast(msg) {
@@ -496,24 +495,26 @@
 
         function save() { 
             database.ref('icg_master_data').set(appData)
-                .then(() => {
-                    setDirty(false);
-                    showToast("☁️ ✅ Guardado en la nube");
-                })
-                .catch((error) => {
-                    console.error("Error guardando en Firebase:", error);
-                    alert("⚠️ Error de conexión: No se pudo guardar el cambio en la Nube.");
-                });
+                .then(() => { setDirty(false); showToast("☁️ ✅ Guardado en la nube"); })
+                .catch((error) => { alert("⚠️ Error de conexión: No se pudo guardar el cambio en la Nube."); });
         }
 
         function setupDefault() {
             PERIODS.forEach(p => { if(!appData.records[p]) appData.records[p] = {}; });
+            
             const sel = document.getElementById('monthSelector'); sel.innerHTML = '';
-            PERIODS.forEach(p => { let op = document.createElement('option'); op.value = p; op.innerText = p; sel.appendChild(op); });
+            const selSug = document.getElementById('monthSelectorSug'); selSug.innerHTML = '';
+            
+            PERIODS.forEach(p => { 
+                let op = document.createElement('option'); op.value = p; op.innerText = p; sel.appendChild(op); 
+                let opSug = document.createElement('option'); opSug.value = p; opSug.innerText = p; selSug.appendChild(opSug); 
+            });
+            
             const now = new Date(); 
             let curP = `${MONTHS_BASE[now.getMonth()]} ${now.getFullYear()}`;
             if(now.getFullYear()===2025 && now.getMonth()===11) curP="DICIEMBRE 2025";
-            if(PERIODS.includes(curP)) sel.value = curP;
+            if(PERIODS.includes(curP)) { sel.value = curP; selSug.value = curP; }
+            
             renderConfigLists(); handleMonthChange();
         }
 
@@ -528,39 +529,65 @@
             appData = parsed;
             
             if(appData.records) {
-                Object.keys(appData.records).forEach(k => {
-                    const kUp = k.toUpperCase();
+                Object.keys(appData.records).forEach(kUp => {
                     if(!PERIODS.includes(kUp)) PERIODS.unshift(kUp); 
                     Object.keys(appData.records[kUp]).forEach(eid => {
                         let arr = appData.records[kUp][eid];
+                        
+                        // Vacuna contra el "Array a Objeto" de Firebase
                         if(!Array.isArray(arr) || arr.length < 31) {
-                            appData.records[kUp][eid] = Array(31).fill(null);
-                            if(Array.isArray(arr)) { for(let i=0; i<Math.min(arr.length, 31); i++) appData.records[kUp][eid][i] = arr[i]; }
+                            const newArr = Array(31).fill(null);
+                            if(Array.isArray(arr)) { 
+                                for(let i=0; i<Math.min(arr.length, 31); i++) newArr[i] = arr[i]; 
+                            } else if (arr && typeof arr === 'object') {
+                                Object.keys(arr).forEach(k => {
+                                    let idx = parseInt(k);
+                                    if(!isNaN(idx) && idx >= 0 && idx < 31) newArr[idx] = arr[k];
+                                });
+                            }
+                            appData.records[kUp][eid] = newArr;
                         }
                     });
                 });
             }
 
             const sel = document.getElementById('monthSelector'); sel.innerHTML = '';
-            PERIODS.forEach(p => { let op = document.createElement('option'); op.value = p; op.innerText = p; sel.appendChild(op); });
+            const selSug = document.getElementById('monthSelectorSug'); selSug.innerHTML = '';
+            
+            PERIODS.forEach(p => { 
+                let op = document.createElement('option'); op.value = p; op.innerText = p; sel.appendChild(op); 
+                let opSug = document.createElement('option'); opSug.value = p; opSug.innerText = p; selSug.appendChild(opSug); 
+            });
             
             let foundMonth = null;
             for(let i=PERIODS.length-1; i>=0; i--) {
                 const p = PERIODS[i];
                 if(appData.records[p]) {
-                    const hasData = Object.values(appData.records[p]).some(arr => arr && arr.some(r => r && r.amount > 0));
+                    const hasData = Object.values(appData.records[p]).some(arr => arr && arr.some(r => r && (parseFloat(r.amount) > 0)));
                     if(hasData) { foundMonth = p; break; }
                 }
             }
-            if(foundMonth) { document.getElementById('monthSelector').value = foundMonth; } 
-            else {
+            
+            if(foundMonth) { 
+                sel.value = foundMonth; selSug.value = foundMonth; 
+            } else {
                 const now = new Date(); 
                 let curP = `${MONTHS_BASE[now.getMonth()]} ${now.getFullYear()}`;
                 if(now.getFullYear()===2025 && now.getMonth()===11) curP="DICIEMBRE 2025";
-                if(PERIODS.includes(curP)) sel.value = curP;
+                if(PERIODS.includes(curP)) { sel.value = curP; selSug.value = curP; }
             }
             if(isEmbedded) alert("✅ Datos cargados.");
             renderConfigLists(); handleMonthChange();
+        }
+
+        // Nueva función para sincronizar ambos selectores
+        function syncMonths(val) {
+            document.getElementById('monthSelector').value = val;
+            document.getElementById('monthSelectorSug').value = val;
+            handleMonthChange();
+            if (document.getElementById('tab-sugerencias').classList.contains('active')) {
+                renderSuggestions();
+            }
         }
 
         function closeEditor() { document.getElementById('cellEditorModal').classList.remove('open'); }
@@ -626,12 +653,13 @@
                     if (rec && rec.span > 1) {
                         const shiftIcon = rec.shift==='Diurno'?'☀️':(rec.shift==='Nocturno'?'🌙':'');
                         const obsText = rec.obs ? `\n📝 NOTA: ${rec.obs}` : '';
-                        const tooltip = `💵 $${rec.amount}\n📍 ${rec.site}\n⚓ ${rec.activity}\n🕒 ${rec.shift}\n📅 Días: ${rec.span}${obsText}`;
-                        cells += `<td colspan="${rec.span}" class="data-cell merged-cell" data-tooltip="${tooltip}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${rec.obs?'<div class="obs-dot"></div>':''}<div style="font-size:0.8rem;">$${rec.amount}</div><div style="font-size:0.6rem; overflow:hidden; white-space:nowrap; padding:0 2px;">${shiftIcon} ${rec.activity}</div></td>`;
-                        mTotal += rec.amount; i += (rec.span - 1);
+                        const amtNum = parseFloat(rec.amount) || 0;
+                        const tooltip = `💵 $${amtNum}\n📍 ${rec.site}\n⚓ ${rec.activity}\n🕒 ${rec.shift}\n📅 Días: ${rec.span}${obsText}`;
+                        cells += `<td colspan="${rec.span}" class="data-cell merged-cell" data-tooltip="${tooltip}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${rec.obs?'<div class="obs-dot"></div>':''}<div style="font-size:0.8rem;">$${amtNum}</div><div style="font-size:0.6rem; overflow:hidden; white-space:nowrap; padding:0 2px;">${shiftIcon} ${rec.activity}</div></td>`;
+                        mTotal += amtNum; i += (rec.span - 1);
                     } else if (rec && rec.linked) { cells += `<td class="data-cell" style="background:#f1f5f9;">-</td>`; }
                     else {
-                        const amt = rec ? rec.amount : 0; mTotal += amt; let shiftIcon = '';
+                        const amt = rec ? (parseFloat(rec.amount) || 0) : 0; mTotal += amt; let shiftIcon = '';
                         if(rec && rec.shift === 'Diurno') shiftIcon = '<span class="shift-day" style="font-size:0.6rem;">☀</span>';
                         if(rec && rec.shift === 'Nocturno') shiftIcon = '<span class="shift-night" style="font-size:0.6rem;">☾</span>';
                         cells += `<td class="data-cell day-col ${amt>0?'has-data':''}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${(rec&&rec.obs)?'<div class="obs-dot"></div>':''}${amt>0?amt:''}${shiftIcon}</td>`;
@@ -639,7 +667,12 @@
                 }
                 grandTotal += mTotal;
                 let yTotal = 0;
-                PERIODS.filter(p => p.includes(currentYear)).forEach(p => { if(appData.records[p] && appData.records[p][emp.id]) { yTotal += appData.records[p][emp.id].reduce((sum, r) => sum + (r&&r.amount>0?r.amount:0), 0); } });
+                PERIODS.filter(p => p.includes(currentYear)).forEach(p => { 
+                    if(appData.records[p] && appData.records[p][emp.id]) { 
+                        yTotal += appData.records[p][emp.id].reduce((sum, r) => sum + (r && (parseFloat(r.amount)>0) ? parseFloat(r.amount) : 0), 0); 
+                    } 
+                });
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td class="sticky-col" style="text-align:left; padding-left:10px;"><div style="font-weight:600; font-size:0.8rem;">${emp.name}</div><div style="font-size:0.65rem; color:#64748b">${emp.role}</div></td>${cells}<td class="total-cell-month center-text">${mTotal}</td><td class="total-cell-year center-text">${yTotal}</td>`;
                 tbody.appendChild(tr);
@@ -658,7 +691,7 @@
             const emp = appData.employees.find(e => e.id == eid);
             const rec = appData.records[p][eid][dix];
             document.getElementById('modalTitle').innerText = `${emp.name}`;
-            let start = dix + 1; let end = dix + 1; let val = rec ? rec.amount : '';
+            let start = dix + 1; let end = dix + 1; let val = rec ? (parseFloat(rec.amount)||'') : '';
             if (rec && rec.span > 1) { end = start + rec.span - 1; }
             document.getElementById('editorStartDay').value = start;
             document.getElementById('editorEndDay').value = end;
@@ -687,54 +720,36 @@
 
         function pasteRecord() {
             if (!copiedRecordData) { alert("⚠️ No has copiado ninguna guardia todavía."); return; }
-            
             const startD = parseInt(document.getElementById('editorStartDay').value);
             let newEnd = startD + copiedRecordData.span;
             if (newEnd > 31) newEnd = 31; 
-            
             document.getElementById('editorEndDay').value = newEnd;
             document.getElementById('editorAmount').value = copiedRecordData.amount;
             document.getElementById('editorRole').value = copiedRecordData.role;
-            
             document.getElementById('editorSite').value = copiedRecordData.site;
             if (copiedRecordData.site === 'OTRO') {
                 document.getElementById('editorSiteOther').value = copiedRecordData.siteOther;
                 document.getElementById('editorSiteOther').classList.add('visible');
-            } else {
-                document.getElementById('editorSiteOther').classList.remove('visible');
-            }
+            } else { document.getElementById('editorSiteOther').classList.remove('visible'); }
             
             document.getElementById('editorActivity').value = copiedRecordData.activity;
             if (copiedRecordData.activity === 'OTRO') {
                 document.getElementById('editorActivityOther').value = copiedRecordData.activityOther;
                 document.getElementById('editorActivityOther').classList.add('visible');
-            } else {
-                document.getElementById('editorActivityOther').classList.remove('visible');
-            }
+            } else { document.getElementById('editorActivityOther').classList.remove('visible'); }
 
             document.getElementById('editorObs').value = copiedRecordData.obs;
-            
             showToast("📥 Datos pegados. ¡Verifica el Turno y dale Guardar!");
         }
 
         function deleteRecord() {
             if (!confirm("⚠️ ¿Estás seguro de querer BORRAR esta guardia por completo?")) return;
-            
             const p = document.getElementById('monthSelector').value;
             const startD = parseInt(document.getElementById('editorStartDay').value) - 1;
-            
             const oldRec = appData.records[p][currentEdit.empId][startD];
             const oldSpan = oldRec ? (oldRec.span || 1) : 1;
-            
-            for(let i = 0; i < oldSpan; i++) {
-                if(startD + i < 31) {
-                    appData.records[p][currentEdit.empId][startD + i] = null;
-                }
-            }
-            
-            save(); 
-            closeEditor(); 
-            renderTable(p);
+            for(let i = 0; i < oldSpan; i++) { if(startD + i < 31) { appData.records[p][currentEdit.empId][startD + i] = null; } }
+            save(); closeEditor(); renderTable(p);
             showToast("🗑️ Guardia eliminada con éxito");
         }
 
@@ -753,9 +768,7 @@
 
             const oldRec = userRow[currentEdit.dayIdx];
             const oldSpan = oldRec ? (oldRec.span || 1) : 1;
-            for(let d=0; d<oldSpan; d++) {
-                if(currentEdit.dayIdx + d < 31) userRow[currentEdit.dayIdx + d] = null;
-            }
+            for(let d=0; d<oldSpan; d++) { if(currentEdit.dayIdx + d < 31) userRow[currentEdit.dayIdx + d] = null; }
 
             const span = endD - startD + 1;
             for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } 
@@ -770,7 +783,8 @@
 
         function renderSuggestions() {
             const grid = document.getElementById('suggestionGrid'); grid.innerHTML = '';
-            const p = document.getElementById('monthSelector').value; const currentYear = p.split(' ')[1];
+            const p = document.getElementById('monthSelectorSug').value; 
+            const currentYear = p.split(' ')[1];
             const pIdx = PERIODS.indexOf(p);
             
             ROLES.forEach(role => {
@@ -779,16 +793,21 @@
                 const ranking = activeGroup.map(emp => {
                     let cur = 0;
                     if(p === "DICIEMBRE 2025") cur = (appData.historical2025[emp.id]?.month || 0);
-                    else if(appData.records[p] && appData.records[p][emp.id]) cur = appData.records[p][emp.id].reduce((a,b)=>a+(b?b.amount:0), 0);
+                    else if(appData.records[p] && appData.records[p][emp.id]) cur = appData.records[p][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0);
+                    
                     let prev = 0;
                     if(pIdx > 0) {
                         const prevP = PERIODS[pIdx-1];
                         if(prevP === "DICIEMBRE 2025") { prev = (appData.historical2025[emp.id]?.month || 0); } 
-                        else { if(appData.records[prevP] && appData.records[prevP][emp.id]) { prev = appData.records[prevP][emp.id].reduce((a,b)=>a+(b?b.amount:0), 0); } }
+                        else { if(appData.records[prevP] && appData.records[prevP][emp.id]) { prev = appData.records[prevP][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0); } }
                     }
+                    
                     let ann = 0;
                     if(p.includes("2025")) ann = (appData.historical2025[emp.id]?.year || 0);
-                    else PERIODS.filter(x => x.includes(currentYear)).forEach(x => { if(appData.records[x]&&appData.records[x][emp.id]) ann += appData.records[x][emp.id].reduce((a,b)=>a+(b?b.amount:0), 0); });
+                    else PERIODS.filter(x => x.includes(currentYear)).forEach(x => { 
+                        if(appData.records[x]&&appData.records[x][emp.id]) ann += appData.records[x][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0); 
+                    });
+                    
                     return { name: emp.name, cur, prev, ann, lastOp: getLastOperationalShift(emp.id), status: emp.status };
                 });
                 
@@ -821,7 +840,7 @@
 
         function printSuggestions() {
             const printArea = document.getElementById('printSuggestionsSection');
-            const p = document.getElementById('monthSelector').value;
+            const p = document.getElementById('monthSelectorSug').value;
             printArea.innerHTML = '';
             let html = `<div class="sug-header">REPORTE DE ASIGNACIÓN DE GUARDIAS</div>`;
             html += `<div class="sug-sub">Generado el: ${new Date().toLocaleDateString()} | Periodo Base: ${p}</div>`;
@@ -877,15 +896,16 @@
                     const emp = appData.employees.find(x => x.id == eId);
                     if(!emp) return;
                     appData.records[p][eId].forEach(r => {
-                        if(r && r.amount > 0) {
-                            stats[year].total += r.amount;
+                        if(r && (parseFloat(r.amount) > 0)) {
+                            const amtNum = parseFloat(r.amount);
+                            stats[year].total += amtNum;
                             let actualRole = r.role || emp.role;
-                            if(stats[year].roles[actualRole] !== undefined) { stats[year].roles[actualRole] += r.amount; }
+                            if(stats[year].roles[actualRole] !== undefined) { stats[year].roles[actualRole] += amtNum; }
                             if (year === 2026) {
-                                monthStats[p].total += r.amount;
-                                if(monthStats[p].roles[actualRole] !== undefined) { monthStats[p].roles[actualRole] += r.amount; }
+                                monthStats[p].total += amtNum;
+                                if(monthStats[p].roles[actualRole] !== undefined) { monthStats[p].roles[actualRole] += amtNum; }
                             }
-                            if(!siteMap[r.site]) siteMap[r.site] = 0; siteMap[r.site] += r.amount;
+                            if(!siteMap[r.site]) siteMap[r.site] = 0; siteMap[r.site] += amtNum;
                         }
                     });
                 });
@@ -926,10 +946,11 @@
                         const emp = appData.employees.find(x => x.id == eId);
                         if(!emp) return;
                         appData.records[p][eId].forEach(r => {
-                            if(r && r.amount > 0) {
-                                mTotal += r.amount;
+                            if(r && (parseFloat(r.amount) > 0)) {
+                                const amtNum = parseFloat(r.amount);
+                                mTotal += amtNum;
                                 let actualRole = r.role || emp.role;
-                                if(mRoles[actualRole] !== undefined) mRoles[actualRole] += r.amount;
+                                if(mRoles[actualRole] !== undefined) mRoles[actualRole] += amtNum;
                             }
                         });
                     });
@@ -964,7 +985,7 @@
             const dataSeries = employees.map((e, idx) => {
                 const sId = `line-${idBase}-${idx}`;
                 const vals = chartPeriods.map(p => {
-                    if(appData.records[p] && appData.records[p][e.id]) return appData.records[p][e.id].reduce((s,r)=>s+(r?r.amount:0),0);
+                    if(appData.records[p] && appData.records[p][e.id]) return appData.records[p][e.id].reduce((s,r)=>s+(r?parseFloat(r.amount)||0:0),0);
                     return 0;
                 });
                 return { name: e.name, values: vals, color: PALETTE[idx % PALETTE.length], id: sId, visible: !hiddenSeries[sId] };
@@ -1020,13 +1041,13 @@
         function addEmployee(){const n=document.getElementById('newEmpName').value.toUpperCase();if(n){appData.employees.push({id:Date.now(),name:n,role:document.getElementById('newEmpRole').value,status:'Disponible'});save();renderConfigLists();document.getElementById('newEmpName').value='';}}
         function addSite(){const n=document.getElementById('newSiteName').value.toUpperCase();if(n&&!appData.sites.includes(n)){appData.sites.push(n);save();renderConfigLists();document.getElementById('newSiteName').value='';}}
         function addActivity(){const n=document.getElementById('newActivityName').value.toUpperCase();if(n&&!appData.activities.includes(n)){appData.activities.push(n);save();renderConfigLists();document.getElementById('newActivityName').value='';}}
-        function getLastOperationalShift(empId){const currentP=document.getElementById('monthSelector').value;const pIdx=PERIODS.indexOf(currentP);for(let i=pIdx;i>=0;i--){const pName=PERIODS[i];if(pName==="DICIEMBRE 2025")continue;const userRecs=appData.records[pName][empId];if(!userRecs)continue;for(let d=30;d>=0;d--){const rec=userRecs[d];if(rec&&rec.activity){const actUpper=rec.activity.toUpperCase();let ignored=false;for(let ign of IGNORE_SHIFT_ACTIVITIES)if(actUpper.includes(ign))ignored=true;if(!ignored&&(rec.shift==='Diurno'||rec.shift==='Nocturno'))return{shift:rec.shift,activity:rec.activity,date:`Dia ${d+1} ${pName.slice(0,3)}`};}}}return null;}
+        function getLastOperationalShift(empId){const currentP=document.getElementById('monthSelectorSug').value;const pIdx=PERIODS.indexOf(currentP);for(let i=pIdx;i>=0;i--){const pName=PERIODS[i];if(pName==="DICIEMBRE 2025")continue;const userRecs=appData.records[pName][empId];if(!userRecs)continue;for(let d=30;d>=0;d--){const rec=userRecs[d];if(rec&&rec.activity){const actUpper=rec.activity.toUpperCase();let ignored=false;for(let ign of IGNORE_SHIFT_ACTIVITIES)if(actUpper.includes(ign))ignored=true;if(!ignored&&(rec.shift==='Diurno'||rec.shift==='Nocturno'))return{shift:rec.shift,activity:rec.activity,date:`Dia ${d+1} ${pName.slice(0,3)}`};}}}return null;}
         function changeStatus(id,newStatus){const emp=appData.employees.find(e=>e.id==id);if(emp){emp.status=newStatus;save();renderSuggestions();}}
         function changeRole(id,newRole){const emp=appData.employees.find(e=>e.id==id);if(emp){emp.role=newRole;save();renderConfigLists();renderSuggestions();renderAllCharts();renderAnalytics();}}
         function setAllAvailable(){if(!confirm("¿Estás seguro de poner a TODOS los empleados en estado 'Disponible'?"))return;appData.employees.forEach(e=>e.status="Disponible");save();renderConfigLists();renderSuggestions();alert("Todo el personal está ahora disponible.");}
         function deleteEmployee(id){if(confirm('¿Eliminar empleado? Esto borrará su historial.')){appData.employees=appData.employees.filter(e=>e.id!==id);save();renderConfigLists();}}
         function exportToExcel(){const table=document.getElementById('payrollTable');const p=document.getElementById('monthSelector').value;const html=table.outerHTML;const url='data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(html);const downloadLink=document.createElement("a");document.body.appendChild(downloadLink);downloadLink.href=url;downloadLink.download=`Nomina_${p}.xls`;downloadLink.click();document.body.removeChild(downloadLink);}
-        async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v11.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
+        async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v1.0.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
         
         function loadBackup(input){
             const reader=new FileReader();
@@ -1045,7 +1066,7 @@
             reader.readAsText(input.files[0]);
         }
 
-        function inspectData(){if(!appData.records){alert("No hay datos cargados.");return;}let msg="📅 PERIODOS ENCONTRADOS EN LA NUBE:\n\n";Object.keys(appData.records).forEach(k=>{const count=Object.values(appData.records[k]).reduce((acc,curr)=>acc+(curr?curr.filter(x=>x&&x.amount>0).length:0),0);msg+=`• ${k}: ${count} registros\n`;});alert(msg);}
+        function inspectData(){if(!appData.records){alert("No hay datos cargados.");return;}let msg="📅 PERIODOS ENCONTRADOS EN LA NUBE:\n\n";Object.keys(appData.records).forEach(k=>{const count=Object.values(appData.records[k]).reduce((acc,curr)=>acc+(curr?curr.filter(x=>x&&(parseFloat(x.amount)>0)).length:0),0);msg+=`• ${k}: ${count} registros\n`;});alert(msg);}
         function openBaseModal(){const container=document.getElementById('baseList');container.innerHTML='';appData.employees.forEach(emp=>{const hist=appData.historical2025[emp.id]||{year:0};const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.innerHTML=`<span style="font-size:0.85rem; font-weight:bold;">${emp.name}</span><input type="number" id="base_year_${emp.id}" value="${hist.year}" class="compact-input" style="width:100px; text-align:right;">`;container.appendChild(row);});document.getElementById('baseModal').classList.add('open');}
         function saveBases(){appData.employees.forEach(emp=>{const val=parseFloat(document.getElementById(`base_year_${emp.id}`).value)||0;if(!appData.historical2025[emp.id])appData.historical2025[emp.id]={month:0,year:0};appData.historical2025[emp.id].year=val;});save();document.getElementById('baseModal').classList.remove('open');renderAnalytics();}
         
