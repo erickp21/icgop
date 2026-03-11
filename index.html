@@ -32,17 +32,15 @@
         #printSection, #printSuggestionsSection { display: none; }
         
         @media print {
-            .navbar, .content-area, .modal-overlay, #globalTooltip { display: none !important; }
+            .navbar, .content-area, .modal-overlay, #globalTooltip, #toastNotif { display: none !important; }
             body { background: white; height: auto; overflow: visible; }
             @page { margin: 10mm; size: auto; }
 
-            /* ESTILOS TABLA NÓMINA */
             body.printing-payroll #printSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11pt; font-family: 'Times New Roman', serif; }
             .print-table th { border: 1px solid black; padding: 8px; background-color: #f0f0f0 !important; font-weight: bold; text-align: center; color: black; }
             .print-table td { border: 1px solid black; padding: 6px; color: black; }
             
-            /* ESTILOS TABLA SUGERENCIAS */
             body.printing-suggestions #printSuggestionsSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .sug-print-table { width: 100%; border-collapse: collapse; font-size: 10pt; font-family: sans-serif; margin-bottom: 5px; }
             .sug-print-table th { background: #1e293b !important; color: white !important; padding: 8px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -51,7 +49,6 @@
             .sug-sub { font-size: 10pt; color: #64748b; margin-bottom: 20px; }
             .badge-print { font-size: 8pt; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; }
             
-            /* CLAVE PARA EL SALTO DE PÁGINA */
             .print-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 20px; }
         }
 
@@ -80,7 +77,8 @@
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem;}
         
         .compact-input { padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; }
-        .compact-btn { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.85rem; }
+        .compact-btn { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; }
+        .compact-btn:hover { filter: brightness(0.95); }
         .delete-btn { color: #94a3b8; background: none; border: none; cursor: pointer; margin-left: 10px; } .delete-btn:hover { color: var(--danger); }
         
         .btn-data { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; font-weight: 600; font-size: 0.85rem;}
@@ -187,45 +185,35 @@
         .other-input.visible { display: block; }
         .btn-save { width: 100%; padding: 0.6rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 1rem;}
 
+        /* --- NOTIFICACIÓN TOAST (NUBE) --- */
+        #toastNotif {
+            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #059669; color: white; padding: 10px 20px; border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 2000; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            pointer-events: none;
+        }
+        #toastNotif.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
         /* --- ADAPTACIÓN PARA MÓVILES (RESPONSIVE) --- */
         @media (max-width: 768px) {
-            .navbar {
-                order: 2;
-                height: 65px;
-                padding: 0;
-                padding-bottom: env(safe-area-inset-bottom);
-                justify-content: space-between;
-            }
+            .navbar { order: 2; height: 65px; padding: 0; padding-bottom: env(safe-area-inset-bottom); justify-content: space-between; }
             .content-area { order: 1; }
             .brand-container { display: none; }
-            
-            .nav-btn {
-                flex: 1;
-                padding: 5px 2px;
-                font-size: 0.65rem;
-                white-space: normal;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                line-height: 1.2;
-            }
+            .nav-btn { flex: 1; padding: 5px 2px; font-size: 0.65rem; white-space: normal; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2; }
             .unsaved-dot { top: 5px; right: 50%; transform: translateX(15px); }
-            
             .toolbar { flex-direction: column; align-items: flex-start; gap: 15px; }
             .search-box, .search-input { width: 100%; }
             .search-input:focus { width: 100%; }
             #monthSelector { width: 100%; }
-            
             .editor-box { width: 92%; padding: 1rem; }
             .form-row-split { flex-direction: column; gap: 0; }
-            
             .sticky-col { min-width: 110px; }
             td .obs-dot { right: 5px; }
-            
             .chart-container { padding: 10px 5px 20px 30px; }
             .year-split-container { flex-direction: column; }
             .month-card { min-width: 100%; }
+            #toastNotif { bottom: 85px; } /* Sube la notificación para no tapar los botones */
         }
     </style>
 </head>
@@ -246,8 +234,9 @@
     </div>
 
     <div id="printSuggestionsSection"></div>
-
     <div id="globalTooltip" class="chart-tooltip"></div>
+    
+    <div id="toastNotif">☁️ ✅ Guardado en la nube</div>
 
     <nav class="navbar">
         <div class="brand-container">
@@ -352,8 +341,9 @@
             <div class="dashboard-container">
                 <h2 style="margin-top:0; color:var(--primary);">💡 Asignación de Guardias</h2>
                 <div style="margin-bottom:10px; font-size:0.85rem;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#fef3c7; border-radius:50%; margin-right:5px;"></span> Empleados "En Guardia" (amarillo) son bajados de prioridad.
-                    <span style="display:inline-block; width:10px; height:10px; background:#fee2e2; border-radius:50%; margin-left:10px; margin-right:5px;"></span> Empleados en Vacaciones/Reposo no se muestran.
+                    <span style="display:inline-block; width:10px; height:10px; background:#fef3c7; border-radius:50%; margin-right:5px;"></span> Empleados "En Guardia" (amarillo) son bajados de prioridad.<br>
+                    <span style="display:inline-block; width:10px; height:10px; background:#fee2e2; border-radius:50%; margin-right:5px;"></span> Empleados en Vacaciones/Reposo no se muestran.<br>
+                    <strong>📊 Lógica de orden actual:</strong> Ventana Bimestral (Prioridad al que sume menos entre el Mes Actual y el Mes Anterior. Desempate: Anual).
                 </div>
                 <div class="dashboard-grid" id="suggestionGrid"></div>
             </div>
@@ -372,18 +362,13 @@
         <section id="tab-analytics" class="view-section">
             <div class="dashboard-container">
                 <h2 style="margin-top:0; color:var(--primary);">📊 Reporte Gerencial Detallado</h2>
-                
-                <div class="year-split-container" id="analyticsContainer">
-                    </div>
-                
+                <div class="year-split-container" id="analyticsContainer"></div>
                 <div id="monthlyAnalyticsContainer" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;"></div>
-
                 <div class="dash-card" style="margin-bottom:20px;">
                     <h3>📅 Evolución del Gasto Global (Mes a Mes)</h3>
                     <div id="legend-GlobalMonthly" class="legend"></div>
                     <div id="chart-GlobalMonthly" class="chart-container" style="height:300px;"></div>
                 </div>
-
                 <div class="dash-card" style="margin-bottom:20px;">
                     <h3>👥 Gastos por Puesto de Trabajo (Mes a Mes)</h3>
                     <div id="legend-RoleMonthly" class="legend"></div>
@@ -398,6 +383,13 @@
     <div class="modal-overlay" id="cellEditorModal">
         <div class="editor-box">
             <h4 style="margin-top:0; color:var(--primary); border-bottom:1px solid #eee; padding-bottom:5px;" id="modalTitle">Registro</h4>
+            
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <button class="compact-btn" onclick="copyRecord()" style="flex:1; background:#e2e8f0; color:#334155; font-weight:bold;">📋 Copiar</button>
+                <button class="compact-btn" onclick="pasteRecord()" style="flex:1; background:#e2e8f0; color:#334155; font-weight:bold;">📥 Pegar</button>
+                <button class="compact-btn" onclick="deleteRecord()" style="flex:1; background:#fee2e2; color:#dc2626; font-weight:bold;">🗑️ Borrar</button>
+            </div>
+
             <div class="form-row-split">
                 <div class="form-group"><label style="font-size:0.8rem;">Desde día:</label><input type="number" id="editorStartDay" class="form-control" readonly style="background:#f1f5f9;"></div>
                 <div class="form-group"><label style="font-size:0.8rem;">Hasta día:</label><input type="number" id="editorEndDay" class="form-control" min="1" max="31"></div>
@@ -410,7 +402,8 @@
             <div class="form-group"><label style="font-size:0.8rem;">Sitio</label><select id="editorSite" class="form-control" onchange="checkOther('Site')"></select><input id="editorSiteOther" class="other-input form-control" placeholder="Especifique..."></div>
             <div class="form-group"><label style="font-size:0.8rem;">Actividad</label><select id="editorActivity" class="form-control" onchange="checkOther('Activity')"></select><input id="editorActivityOther" class="other-input form-control" placeholder="Especifique..."></div>
             <div class="form-group"><label style="font-size:0.8rem;">Observación / Incidencia</label><textarea id="editorObs" class="form-control" rows="2" placeholder="Ej: Lluvia 2h, Transporte demorado..."></textarea></div>
-            <button class="btn-save" onclick="saveEditor()">GUARDAR BLOQUE</button>
+            
+            <button class="btn-save" onclick="saveEditor()">GUARDAR CAMBIOS</button>
             <button onclick="closeEditor()" style="width:100%; margin-top:5px; border:none; background:none; cursor:pointer; color:#64748b;">Cancelar</button>
         </div>
     </div>
@@ -471,8 +464,17 @@
         let appData = { employees: [...DEFAULT_EMPLOYEES], sites: [...DEFAULT_SITES], activities: [...DEFAULT_ACTIVITIES], records: {}, historical2025: {} };
         let currentEdit = { empId: null, dayIdx: null };
         let isDirty = false;
+        
+        // --- VARIABLE PARA GUARDAR DATOS COPIADOS ---
+        let copiedRecordData = null;
 
-        // --- INIT CONECTADO A LA NUBE ---
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotif');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+        }
+
         function init() {
             if (DATA_INCRUSTADA) { loadParsedData(DATA_INCRUSTADA, true); return; }
             
@@ -490,11 +492,11 @@
             });
         }
 
-        // --- SAVE CONECTADO A LA NUBE ---
         function save() { 
             database.ref('icg_master_data').set(appData)
                 .then(() => {
                     setDirty(false);
+                    showToast("☁️ ✅ Guardado en la nube"); // NOTIFICACIÓN AL GUARDAR
                 })
                 .catch((error) => {
                     console.error("Error guardando en Firebase:", error);
@@ -667,6 +669,77 @@
             document.getElementById('cellEditorModal').classList.add('open');
         }
 
+        // --- FUNCIONES DE COPIAR, PEGAR Y BORRAR ---
+        function copyRecord() {
+            copiedRecordData = {
+                span: parseInt(document.getElementById('editorEndDay').value) - parseInt(document.getElementById('editorStartDay').value),
+                amount: document.getElementById('editorAmount').value,
+                role: document.getElementById('editorRole').value,
+                site: document.getElementById('editorSite').value,
+                siteOther: document.getElementById('editorSiteOther').value,
+                activity: document.getElementById('editorActivity').value,
+                activityOther: document.getElementById('editorActivityOther').value,
+                obs: document.getElementById('editorObs').value
+            };
+            showToast("📋 ¡Copiado! Ahora abre otra casilla y dale Pegar.");
+        }
+
+        function pasteRecord() {
+            if (!copiedRecordData) { alert("⚠️ No has copiado ninguna guardia todavía."); return; }
+            
+            const startD = parseInt(document.getElementById('editorStartDay').value);
+            let newEnd = startD + copiedRecordData.span;
+            if (newEnd > 31) newEnd = 31; // Límite máximo de días
+            
+            document.getElementById('editorEndDay').value = newEnd;
+            document.getElementById('editorAmount').value = copiedRecordData.amount;
+            document.getElementById('editorRole').value = copiedRecordData.role;
+            
+            // Lógica para asignar Sitios (Incluso los "OTRO")
+            document.getElementById('editorSite').value = copiedRecordData.site;
+            if (copiedRecordData.site === 'OTRO') {
+                document.getElementById('editorSiteOther').value = copiedRecordData.siteOther;
+                document.getElementById('editorSiteOther').classList.add('visible');
+            } else {
+                document.getElementById('editorSiteOther').classList.remove('visible');
+            }
+            
+            // Lógica para asignar Actividades (Incluso los "OTRO")
+            document.getElementById('editorActivity').value = copiedRecordData.activity;
+            if (copiedRecordData.activity === 'OTRO') {
+                document.getElementById('editorActivityOther').value = copiedRecordData.activityOther;
+                document.getElementById('editorActivityOther').classList.add('visible');
+            } else {
+                document.getElementById('editorActivityOther').classList.remove('visible');
+            }
+
+            document.getElementById('editorObs').value = copiedRecordData.obs;
+            
+            showToast("📥 Datos pegados. ¡Verifica el Turno y dale Guardar!");
+        }
+
+        function deleteRecord() {
+            if (!confirm("⚠️ ¿Estás seguro de querer BORRAR esta guardia por completo?")) return;
+            
+            const p = document.getElementById('monthSelector').value;
+            const startD = parseInt(document.getElementById('editorStartDay').value) - 1;
+            
+            // Buscamos cuánto espacio ocupaba esta guardia para limpiarlo todo
+            const oldRec = appData.records[p][currentEdit.empId][startD];
+            const oldSpan = oldRec ? (oldRec.span || 1) : 1;
+            
+            for(let i = 0; i < oldSpan; i++) {
+                if(startD + i < 31) {
+                    appData.records[p][currentEdit.empId][startD + i] = null;
+                }
+            }
+            
+            save(); 
+            closeEditor(); 
+            renderTable(p);
+            showToast("🗑️ Guardia eliminada con éxito");
+        }
+
         function saveEditor() {
             const startD = parseInt(document.getElementById('editorStartDay').value);
             const endD = parseInt(document.getElementById('editorEndDay').value);
@@ -680,12 +753,20 @@
             else if (userRow.length < 31) { while (userRow.length < 31) { userRow.push(null); } }
             appData.records[p][currentEdit.empId] = userRow;
 
+            // Limpiamos los días viejos antes de escribir los nuevos (Evita que queden guiones huérfanos)
+            const oldRec = userRow[currentEdit.dayIdx];
+            const oldSpan = oldRec ? (oldRec.span || 1) : 1;
+            for(let d=0; d<oldSpan; d++) {
+                if(currentEdit.dayIdx + d < 31) userRow[currentEdit.dayIdx + d] = null;
+            }
+
             const span = endD - startD + 1;
-            for(let d=startD; d<=endD; d++) { appData.records[p][currentEdit.empId][d-1] = null; }
+            for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } // Limpiamos la nueva zona
+            
             if (amount > 0) {
                 const commonData = { role: document.getElementById('editorRole').value, site: getSelectVal('editorSite'), activity: getSelectVal('editorActivity'), shift: document.getElementById('editorShift').value, obs: document.getElementById('editorObs').value };
-                appData.records[p][currentEdit.empId][startD-1] = { amount: amount, span: span, ...commonData };
-                for(let k=1; k < span; k++) { appData.records[p][currentEdit.empId][startD-1+k] = { amount: 0, linked: true, span: 0, ...commonData }; }
+                userRow[startD-1] = { amount: amount, span: span, ...commonData };
+                for(let k=1; k < span; k++) { userRow[startD-1+k] = { amount: 0, linked: true, span: 0, ...commonData }; }
             }
             save(); closeEditor(); renderTable(p);
         }
@@ -717,8 +798,9 @@
                 ranking.sort((a,b) => {
                     if (a.status === "En Guardia" && b.status !== "En Guardia") return 1;
                     if (a.status !== "En Guardia" && b.status === "En Guardia") return -1;
-                    if (a.cur !== b.cur) return a.cur - b.cur;
-                    if (a.prev !== b.prev) return a.prev - b.prev;
+                    const bimestralA = a.cur + a.prev;
+                    const bimestralB = b.cur + b.prev;
+                    if (bimestralA !== bimestralB) return bimestralA - bimestralB;
                     return a.ann - b.ann;
                 });
 
@@ -744,13 +826,10 @@
             const printArea = document.getElementById('printSuggestionsSection');
             const p = document.getElementById('monthSelector').value;
             printArea.innerHTML = '';
-            
             let html = `<div class="sug-header">REPORTE DE ASIGNACIÓN DE GUARDIAS</div>`;
             html += `<div class="sug-sub">Generado el: ${new Date().toLocaleDateString()} | Periodo Base: ${p}</div>`;
-            html += `<div style="font-size:9pt; margin-bottom:15px;"><i>Nota: Ordenados por prioridad de asignación (Menor Ingreso Mes Actual > Menor Ingreso Mes Anterior > Menor Anual).</i></div>`;
-            
+            html += `<div style="font-size:9pt; margin-bottom:15px;"><i>Nota: Ordenados por prioridad de asignación (Menor suma Bimestral [Mes Actual + Anterior] > Menor Anual).</i></div>`;
             const pluralMap = { "Supervisor": "Supervisores", "Tecnico de Seguridad": "Técnicos de Seguridad", "Inspector": "Inspectores" };
-
             ROLES.forEach(role => {
                 const cardTable = document.getElementById(`table-sug-${role}`);
                 if (cardTable) {
@@ -759,27 +838,17 @@
                     html += `<h3 style="margin-bottom:5px; border-bottom:1px solid #ccc; page-break-after: avoid;">${title}</h3>`;
                     html += `<table class="sug-print-table">`;
                     html += `<thead><tr style="background:#f1f5f9;"><th>Nombre</th><th style="text-align:right;">Mes Actual</th><th style="text-align:right;">Mes Ant.</th><th style="text-align:right;">Anual</th><th>Última Actividad</th><th>Estatus</th></tr></thead><tbody>`;
-                    
                     const rows = cardTable.querySelectorAll('tbody tr');
                     rows.forEach(r => {
                         const cells = r.querySelectorAll('td');
                         const nameText = cells[0].querySelector('b').innerText;
                         const lastTurn = cells[0].querySelector('.shift-info') ? cells[0].querySelector('.shift-info').innerText : '-';
                         const badgeBusy = cells[0].querySelector('.badge-status-busy') ? 'OCUPADO' : 'DISPONIBLE';
-
-                        html += `<tr>
-                            <td><b>${nameText}</b></td>
-                            <td style="text-align:right;">${cells[1].innerText}</td>
-                            <td style="text-align:right;">${cells[2].innerText}</td>
-                            <td style="text-align:right;">${cells[3].innerText}</td>
-                            <td>${lastTurn}</td>
-                            <td>${badgeBusy === 'OCUPADO' ? '<span class="badge-print">OCUPADO</span>' : 'DISPONIBLE'}</td>
-                        </tr>`;
+                        html += `<tr><td><b>${nameText}</b></td><td style="text-align:right;">${cells[1].innerText}</td><td style="text-align:right;">${cells[2].innerText}</td><td style="text-align:right;">${cells[3].innerText}</td><td>${lastTurn}</td><td>${badgeBusy === 'OCUPADO' ? '<span class="badge-print">OCUPADO</span>' : 'DISPONIBLE'}</td></tr>`;
                     });
                     html += `</tbody></table></div>`;
                 }
             });
-
             printArea.innerHTML = html;
             document.body.classList.add('printing-suggestions');
             window.print();
@@ -796,7 +865,6 @@
             let stats = { 2025: { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } }, 2026: { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } } };
             let siteMap = {};
             let monthStats = {};
-
             appData.employees.forEach(emp => {
                 const hist = appData.historical2025[emp.id];
                 if (hist && hist.year > 0) {
@@ -804,12 +872,10 @@
                     if(stats[2025].roles[emp.role] !== undefined) stats[2025].roles[emp.role] += hist.year;
                 }
             });
-
             PERIODS.forEach(p => {
                 if(!appData.records[p]) return;
                 const year = p.includes("2025") ? 2025 : 2026;
                 if (year === 2026) { if (!monthStats[p]) monthStats[p] = { total: 0, roles: { 'Supervisor':0, 'Tecnico de Seguridad':0, 'Inspector':0 } }; }
-
                 Object.keys(appData.records[p]).forEach(eId => {
                     const emp = appData.employees.find(x => x.id == eId);
                     if(!emp) return;
@@ -827,17 +893,14 @@
                     });
                 });
             });
-
             const container = document.getElementById('analyticsContainer');
             container.innerHTML = `${renderYearCard(2025, stats[2025])}${renderYearCard(2026, stats[2026])}`;
-
             const monthContainer = document.getElementById('monthlyAnalyticsContainer');
             let monthHtml = '';
             Object.keys(monthStats).forEach(m => {
                 if (monthStats[m].total > 0) { monthHtml += renderMonthCard(m, monthStats[m]); }
             });
             monthContainer.innerHTML = monthHtml;
-
             const sitesContainer = document.getElementById('sitesChart'); sitesContainer.innerHTML = '';
             const totalGlobal = stats[2025].total + stats[2026].total;
             Object.keys(siteMap).sort((a,b)=>siteMap[b]-siteMap[a]).forEach(s => {
@@ -846,7 +909,6 @@
                 row.innerHTML = `<div class="bar-label" title="${s}">${s}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%">$${siteMap[s].toLocaleString()}</div></div>`;
                 sitesContainer.appendChild(row);
             });
-
             renderAnalyticsCharts();
         }
 
@@ -969,7 +1031,6 @@
         function exportToExcel(){const table=document.getElementById('payrollTable');const p=document.getElementById('monthSelector').value;const html=table.outerHTML;const url='data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(html);const downloadLink=document.createElement("a");document.body.appendChild(downloadLink);downloadLink.href=url;downloadLink.download=`Nomina_${p}.xls`;downloadLink.click();document.body.removeChild(downloadLink);}
         async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v11.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
         
-        // --- LOAD (CARGA Y SUBE A LA NUBE AUTOMÁTICAMENTE) ---
         function loadBackup(input){
             const reader=new FileReader();
             reader.onload=e=>{
@@ -978,7 +1039,7 @@
                 try {
                     const parsed=JSON.parse(raw);
                     loadParsedData(parsed, false);
-                    save(); // Guarda el JSON automáticamente en la nube
+                    save(); 
                     alert("✅ Archivo cargado correctamente y sincronizado con la Nube.");
                 } catch(x) {
                     console.error(x); alert("❌ Error: "+x.message);
@@ -991,7 +1052,6 @@
         function openBaseModal(){const container=document.getElementById('baseList');container.innerHTML='';appData.employees.forEach(emp=>{const hist=appData.historical2025[emp.id]||{year:0};const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.innerHTML=`<span style="font-size:0.85rem; font-weight:bold;">${emp.name}</span><input type="number" id="base_year_${emp.id}" value="${hist.year}" class="compact-input" style="width:100px; text-align:right;">`;container.appendChild(row);});document.getElementById('baseModal').classList.add('open');}
         function saveBases(){appData.employees.forEach(emp=>{const val=parseFloat(document.getElementById(`base_year_${emp.id}`).value)||0;if(!appData.historical2025[emp.id])appData.historical2025[emp.id]={month:0,year:0};appData.historical2025[emp.id].year=val;});save();document.getElementById('baseModal').classList.remove('open');renderAnalytics();}
         
-        // --- RESET (BORRA DE LA NUBE) ---
         function resetData(){
             if(confirm("⚠️ ¿Borrar todo de la nube? Esto no se puede deshacer.")){
                 database.ref('icg_master_data').remove().then(() => {
