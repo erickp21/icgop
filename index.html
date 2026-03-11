@@ -14,7 +14,7 @@
             --text: #334155;
             --danger: #ef4444;
             --success: #10b981;
-            --warning: #ffb84d; /* Un naranja más claro/amarillo para warning, derivado del accent */
+            --warning: #ffb84d; 
         }
 
         body {
@@ -36,13 +36,11 @@
             body { background: white; height: auto; overflow: visible; }
             @page { margin: 10mm; size: auto; }
 
-            /* ESTILOS TABLA NÓMINA */
             body.printing-payroll #printSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .print-table { width: 100%; border-collapse: collapse; font-size: 11pt; font-family: 'Times New Roman', serif; }
             .print-table th { border: 1px solid black; padding: 8px; background-color: #f0f0f0 !important; font-weight: bold; text-align: center; color: black; }
             .print-table td { border: 1px solid black; padding: 6px; color: black; }
             
-            /* ESTILOS TABLA SUGERENCIAS */
             body.printing-suggestions #printSuggestionsSection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             .sug-print-table { width: 100%; border-collapse: collapse; font-size: 10pt; font-family: sans-serif; margin-bottom: 5px; }
             .sug-print-table th { background: var(--primary) !important; color: white !important; padding: 8px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -51,7 +49,6 @@
             .sug-sub { font-size: 10pt; color: #64748b; margin-bottom: 20px; }
             .badge-print { font-size: 8pt; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; }
             
-            /* CLAVE PARA EL SALTO DE PÁGINA */
             .print-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 20px; }
         }
 
@@ -61,7 +58,7 @@
         .logo-img { height: 40px; width: auto; background: white; border-radius: 4px; padding: 2px; }
         .brand { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap; }
         
-        .nav-btn { background: transparent; border: none; padding: 0 1rem; height: 100%; cursor: pointer; font-weight: 500; color: #94a3b8; border-bottom: 3px solid transparent; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap; position: relative; }
+        .nav-btn { background: transparent; border: none; padding: 0 1rem; height: 100%; cursor: pointer; font-weight: 500; color: #e2e8f0; border-bottom: 3px solid transparent; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap; position: relative; }
         .nav-btn:hover { color: white; background: rgba(255,255,255,0.1); }
         .nav-btn.active { border-bottom-color: var(--accent); color: white; background: rgba(255,255,255,0.05); }
         
@@ -123,7 +120,7 @@
         .obs-dot { position: absolute; top: 1px; right: 1px; width: 5px; height: 5px; background: var(--danger); border-radius: 50%; z-index: 6; }
         .center-text { text-align: center !important; }
         .total-cell-month { font-weight: bold; background: #f1f5f9; text-align: center !important; }
-        .total-cell-year { font-weight: bold; color: #d97706; text-align: center !important; }
+        .total-cell-year { font-weight: bold; color: var(--accent); text-align: center !important; }
         .dec2025-input { width: 100px; text-align: right; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; }
 
         .dashboard-container { padding: 1.5rem; background: #f1f5f9; min-height: 100%; }
@@ -219,7 +216,7 @@
             .chart-container { padding: 10px 5px 20px 30px; }
             .year-split-container { flex-direction: column; }
             .month-card { min-width: 100%; }
-            #toastNotif { bottom: 85px; } /* Sube la notificación para no tapar los botones */
+            #toastNotif { bottom: 85px; }
         }
     </style>
 </head>
@@ -246,7 +243,7 @@
 
     <nav class="navbar">
         <div class="brand-container">
-            <img src="image_0.png" alt="Logo ICG" class="logo-img">
+            <img src="logo.png" alt="Logo ICG" class="logo-img">
             <div class="brand">ICG GESTOR V11.25</div>
         </div>
         
@@ -599,7 +596,7 @@
             appData.employees.forEach(emp => {
                 const hist = appData.historical2025[emp.id] || { month: 0, year: 0 };
                 const tr = document.createElement('tr'); tr.className = 'dec2025-row';
-                tr.innerHTML = `<td style="padding:10px; border-bottom:1px solid #eee;"><b>${emp.name}</b><br><small style="color:#64748b">${emp.role}</small></td><td style="padding:10px; text-align:right; border-bottom:1px solid #eee;"><input type="number" class="dec2025-input" value="${hist.month}" onchange="saveDec2025(${emp.id}, 'month', this.value)"></td><td style="padding:10px; text-align:right; border-bottom:1px solid #eee;"><input type="number" class="dec2025-input" value="${hist.year}" onchange="saveDec2025(${emp.id}, 'year', this.value)" style="color:#d97706; font-weight:bold;"></td>`;
+                tr.innerHTML = `<td style="padding:10px; border-bottom:1px solid #eee;"><b>${emp.name}</b><br><small style="color:#64748b">${emp.role}</small></td><td style="padding:10px; text-align:right; border-bottom:1px solid #eee;"><input type="number" class="dec2025-input" value="${hist.month}" onchange="saveDec2025(${emp.id}, 'month', this.value)"></td><td style="padding:10px; text-align:right; border-bottom:1px solid #eee;"><input type="number" class="dec2025-input" value="${hist.year}" onchange="saveDec2025(${emp.id}, 'year', this.value)" style="color:var(--accent); font-weight:bold;"></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -693,13 +690,12 @@
             
             const startD = parseInt(document.getElementById('editorStartDay').value);
             let newEnd = startD + copiedRecordData.span;
-            if (newEnd > 31) newEnd = 31; // Límite máximo de días
+            if (newEnd > 31) newEnd = 31; 
             
             document.getElementById('editorEndDay').value = newEnd;
             document.getElementById('editorAmount').value = copiedRecordData.amount;
             document.getElementById('editorRole').value = copiedRecordData.role;
             
-            // Lógica para asignar Sitios (Incluso los "OTRO")
             document.getElementById('editorSite').value = copiedRecordData.site;
             if (copiedRecordData.site === 'OTRO') {
                 document.getElementById('editorSiteOther').value = copiedRecordData.siteOther;
@@ -708,7 +704,6 @@
                 document.getElementById('editorSiteOther').classList.remove('visible');
             }
             
-            // Lógica para asignar Actividades (Incluso los "OTRO")
             document.getElementById('editorActivity').value = copiedRecordData.activity;
             if (copiedRecordData.activity === 'OTRO') {
                 document.getElementById('editorActivityOther').value = copiedRecordData.activityOther;
@@ -728,7 +723,6 @@
             const p = document.getElementById('monthSelector').value;
             const startD = parseInt(document.getElementById('editorStartDay').value) - 1;
             
-            // Buscamos cuánto espacio ocupaba esta guardia para limpiarlo todo
             const oldRec = appData.records[p][currentEdit.empId][startD];
             const oldSpan = oldRec ? (oldRec.span || 1) : 1;
             
@@ -757,7 +751,6 @@
             else if (userRow.length < 31) { while (userRow.length < 31) { userRow.push(null); } }
             appData.records[p][currentEdit.empId] = userRow;
 
-            // Limpiamos los días viejos antes de escribir los nuevos (Evita que queden guiones huérfanos)
             const oldRec = userRow[currentEdit.dayIdx];
             const oldSpan = oldRec ? (oldRec.span || 1) : 1;
             for(let d=0; d<oldSpan; d++) {
@@ -765,7 +758,7 @@
             }
 
             const span = endD - startD + 1;
-            for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } // Limpiamos la nueva zona
+            for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } 
             
             if (amount > 0) {
                 const commonData = { role: document.getElementById('editorRole').value, site: getSelectVal('editorSite'), activity: getSelectVal('editorActivity'), shift: document.getElementById('editorShift').value, obs: document.getElementById('editorObs').value };
@@ -817,7 +810,7 @@
                     else { nextInfo = '<span class="shift-info" style="color:#cbd5e1">-</span>'; }
                     let statusBadge = '';
                     if(r.status === "En Guardia") statusBadge = `<span class="badge-status-busy">⚠️ OCUPADO</span>`;
-                    rows += `<tr style="${r.status==='En Guardia'?'background:#fffbeb; opacity:0.7':''}"><td>${statusBadge} ${isLow ? '<span class="badge-low">BAJO</span> ' : ''}<b>${r.name}</b>${nextInfo}</td><td class="money" style="color:${r.cur<1?'#dc2626':'#16a34a'}">$${r.cur}</td><td class="money prev-month">$${r.prev}</td><td class="money" style="color:#d97706">$${r.ann}</td></tr>`;
+                    rows += `<tr style="${r.status==='En Guardia'?'background:#fffbeb; opacity:0.7':''}"><td>${statusBadge} ${isLow ? '<span class="badge-low">BAJO</span> ' : ''}<b>${r.name}</b>${nextInfo}</td><td class="money" style="color:${r.cur<1?'#dc2626':'#16a34a'}">$${r.cur}</td><td class="money prev-month">$${r.prev}</td><td class="money" style="color:var(--accent)">$${r.ann}</td></tr>`;
                 });
                 const card = document.createElement('div'); card.className='dash-card';
                 card.id = `card-sug-${role}`; 
@@ -944,7 +937,7 @@
                 return { label: p, total: mTotal, roles: mRoles };
             });
 
-            const globalSeries = [{ name: "Total Global", values: monthlyData.map(d => d.total), color: var(--accent), id: "g-total", visible: true }];
+            const globalSeries = [{ name: "Total Global", values: monthlyData.map(d => d.total), color: "#F29100", id: "g-total", visible: true }];
             drawSVG(document.getElementById('chart-GlobalMonthly'), document.getElementById('legend-GlobalMonthly'), globalSeries, chartPeriods);
 
             const roleSeries = [
@@ -955,7 +948,7 @@
             drawSVG(document.getElementById('chart-RoleMonthly'), document.getElementById('legend-RoleMonthly'), roleSeries, chartPeriods);
         }
 
-        function renderYearCard(year, data) { return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':var(--accent)}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`; }
+        function renderYearCard(year, data) { return `<div class="year-card y${year}"><h3 style="margin:0; color:${year===2025?'#475569':'var(--accent)'}">Año ${year}</h3><div class="big-number">$${data.total.toLocaleString()}</div><div style="margin-top:15px;">${Object.keys(data.roles).map(r => `<div class="role-row"><span>${r}</span><strong>$${data.roles[r].toLocaleString()}</strong></div>`).join('')}</div></div>`; }
 
         let hiddenSeries = {};
         function toggleSeries(seriesId) { if (hiddenSeries[seriesId]) { delete hiddenSeries[seriesId]; } else { hiddenSeries[seriesId] = true; } renderAllCharts(); renderAnalytics(); }
