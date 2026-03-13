@@ -494,7 +494,9 @@
         }
 
         function save() { 
-            database.ref('icg_master_data').set(appData)
+            const cleanData = JSON.parse(JSON.stringify(appData));
+            
+            database.ref('icg_master_data').set(cleanData)
                 .then(() => { setDirty(false); showToast("☁️ ✅ Guardado en la nube"); })
                 .catch((error) => { alert("⚠️ Error de conexión: No se pudo guardar el cambio en la Nube."); });
         }
@@ -534,15 +536,14 @@
                     Object.keys(appData.records[kUp]).forEach(eid => {
                         let arr = appData.records[kUp][eid];
                         
-                        // Vacuna contra el "Array a Objeto" de Firebase
                         if(!Array.isArray(arr) || arr.length < 31) {
                             const newArr = Array(31).fill(null);
                             if(Array.isArray(arr)) { 
-                                for(let i=0; i<Math.min(arr.length, 31); i++) newArr[i] = arr[i]; 
+                                for(let i=0; i<Math.min(arr.length, 31); i++) newArr[i] = arr[i] === undefined ? null : arr[i]; 
                             } else if (arr && typeof arr === 'object') {
                                 Object.keys(arr).forEach(k => {
                                     let idx = parseInt(k);
-                                    if(!isNaN(idx) && idx >= 0 && idx < 31) newArr[idx] = arr[k];
+                                    if(!isNaN(idx) && idx >= 0 && idx < 31) newArr[idx] = arr[k] === undefined ? null : arr[k];
                                 });
                             }
                             appData.records[kUp][eid] = newArr;
@@ -580,7 +581,6 @@
             renderConfigLists(); handleMonthChange();
         }
 
-        // Nueva función para sincronizar ambos selectores
         function syncMonths(val) {
             document.getElementById('monthSelector').value = val;
             document.getElementById('monthSelectorSug').value = val;
