@@ -449,10 +449,13 @@ function printSuggestions() {
     const printArea = document.getElementById('printSuggestionsSection');
     const p = document.getElementById('monthSelectorSug').value;
     printArea.innerHTML = '';
+    
     let html = `<div class="sug-header">REPORTE DE ASIGNACIÓN DE GUARDIAS</div>`;
     html += `<div class="sug-sub">Generado el: ${new Date().toLocaleDateString()} | Periodo Base: ${p}</div>`;
-    html += `<div style="font-size:9pt; margin-bottom:15px;"><i>Nota: Ordenados por prioridad de asignación (Menor suma Bimestral [Mes Actual + Anterior] > Menor Anual).</i></div>`;
+    html += `<div style="font-size:9pt; margin-bottom:15px;"><i>Nota: Ordenados por prioridad de asignación (Menor suma Bimestral [Mes Actual + Anterior] > Menor Anual). El sistema penaliza a candidatos lejanos (🚗) si ya existe personal en guardia a gran distancia.</i></div>`;
+    
     const pluralMap = { "Supervisor": "Supervisores", "Tecnico de Seguridad": "Técnicos de Seguridad", "Inspector": "Inspectores" };
+    
     ROLES.forEach(role => {
         const cardTable = document.getElementById(`table-sug-${role}`);
         if (cardTable) {
@@ -461,17 +464,31 @@ function printSuggestions() {
             html += `<h3 style="margin-bottom:5px; border-bottom:1px solid #ccc; page-break-after: avoid;">${title}</h3>`;
             html += `<table class="sug-print-table">`;
             html += `<thead><tr style="background:#f1f5f9;"><th>Nombre</th><th style="text-align:right;">Mes Actual</th><th style="text-align:right;">Mes Ant.</th><th style="text-align:right;">Anual</th><th>Última Actividad</th><th>Estatus</th></tr></thead><tbody>`;
+            
             const rows = cardTable.querySelectorAll('tbody tr');
             rows.forEach(r => {
                 const cells = r.querySelectorAll('td');
                 const nameText = cells[0].querySelector('b').innerText;
                 const lastTurn = cells[0].querySelector('.shift-info') ? cells[0].querySelector('.shift-info').innerText : '-';
                 const badgeBusy = cells[0].querySelector('.badge-status-busy') ? 'OCUPADO' : 'DISPONIBLE';
-                html += `<tr><td><b>${nameText}</b></td><td style="text-align:right;">${cells[1].innerText}</td><td style="text-align:right;">${cells[2].innerText}</td><td style="text-align:right;">${cells[3].innerText}</td><td>${lastTurn}</td><td>${badgeBusy === 'OCUPADO' ? '<span class="badge-print">OCUPADO</span>' : 'DISPONIBLE'}</td></tr>`;
+                
+                // NUEVO: Detectar si el empleado tiene la etiqueta de distancia en el HTML
+                const isLejos = cells[0].innerHTML.includes('🚗 Lejos');
+                const printDistance = isLejos ? ' <span style="font-size:7pt; border:1px solid #ccc; padding:1px 3px; border-radius:3px; color:#b45309; background:#fffbeb; margin-left:5px;">🚗 Lejos</span>' : '';
+
+                html += `<tr>
+                    <td><b>${nameText}</b>${printDistance}</td>
+                    <td style="text-align:right;">${cells[1].innerText}</td>
+                    <td style="text-align:right;">${cells[2].innerText}</td>
+                    <td style="text-align:right;">${cells[3].innerText}</td>
+                    <td>${lastTurn}</td>
+                    <td>${badgeBusy === 'OCUPADO' ? '<span class="badge-print">OCUPADO</span>' : 'DISPONIBLE'}</td>
+                </tr>`;
             });
             html += `</tbody></table></div>`;
         }
     });
+    
     printArea.innerHTML = html;
     document.body.classList.add('printing-suggestions');
     window.print();
