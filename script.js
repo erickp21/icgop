@@ -656,13 +656,50 @@ function showTooltip(e,n,p,v){tt.style.display='block';tt.style.left=(e.pageX+10
 function hideTooltip(){tt.style.display='none';}
 
 function renderL(id,arr,fmt,del){const el=document.getElementById(id);if(!el)return;el.innerHTML='';arr.forEach((x,i)=>{const l=document.createElement('li');l.className='list-item';l.innerHTML=fmt(x);const b=document.createElement('button');b.className='delete-btn';b.innerText='✕';b.onclick=()=>{del(x.id?x.id:i);save();renderConfigLists();};l.appendChild(b);el.appendChild(l);});}
-function renderConfigLists(){renderL('employeeList',appData.employees,e=>`<div style="display:flex;align-items:center;width:100%;gap:10px;"><div style="flex:1;min-width:120px;"><b>${e.name}</b></div><select class="role-select" onchange="changeRole(${e.id},this.value)"><option value="Supervisor" ${e.role==='Supervisor'?'selected':''}>Supervisor</option><option value="Tecnico de Seguridad" ${e.role==='Tecnico de Seguridad'?'selected':''}>Técnico</option><option value="Inspector" ${e.role==='Inspector'?'selected':''}>Inspector</option></select><select class="status-select ${getStatusClass(e.status)}" onchange="changeStatus(${e.id},this.value)"><option value="Disponible" ${e.status==='Disponible'?'selected':''}>🟢 Disp.</option><option value="En Guardia" ${e.status==='En Guardia'?'selected':''}>🟡 Guardia</option><option value="Vacaciones" ${e.status==='Vacaciones'?'selected':''}>🔴 Vacac.</option><option value="Reposo" ${e.status==='Reposo'?'selected':''}>🔴 Reposo</option></select></div>`,(id)=>{deleteEmployee(id);});renderL('siteList',appData.sites,s=>s,i=>appData.sites.splice(i,1));renderL('activityList',appData.activities,a=>a,i=>appData.activities.splice(i,1));}
+function renderConfigLists(){
+    renderL('employeeList',appData.employees,e=>`<div style="display:flex;align-items:center;width:100%;gap:10px;">
+        <div style="flex:1;min-width:120px;"><b>${e.name}</b></div>
+        
+        <input type="number" class="dist-select" min="1" max="10" title="Distancia (1-10)" value="${e.distanceScore || 5}" onchange="changeDistance(${e.id}, this.value)">
+        
+        <select class="role-select" onchange="changeRole(${e.id},this.value)">
+            <option value="Supervisor" ${e.role==='Supervisor'?'selected':''}>Supervisor</option>
+            <option value="Tecnico de Seguridad" ${e.role==='Tecnico de Seguridad'?'selected':''}>Técnico</option>
+            <option value="Inspector" ${e.role==='Inspector'?'selected':''}>Inspector</option>
+        </select>
+        <select class="status-select ${getStatusClass(e.status)}" onchange="changeStatus(${e.id},this.value)">
+            <option value="Disponible" ${e.status==='Disponible'?'selected':''}>🟢 Disp.</option>
+            <option value="En Guardia" ${e.status==='En Guardia'?'selected':''}>🟡 Guardia</option>
+            <option value="Vacaciones" ${e.status==='Vacaciones'?'selected':''}>🔴 Vacac.</option>
+            <option value="Reposo" ${e.status==='Reposo'?'selected':''}>🔴 Reposo</option>
+        </select>
+    </div>`,(id)=>{deleteEmployee(id);});
+    
+    renderL('siteList',appData.sites,s=>s,i=>appData.sites.splice(i,1));
+    renderL('activityList',appData.activities,a=>a,i=>appData.activities.splice(i,1));
+}
 function getStatusClass(s){if(s==='Disponible')return 'st-active';if(s==='En Guardia')return 'st-busy';return 'st-vacation';}
 function fillSelect(id,opts,sel){const el=document.getElementById(id);el.innerHTML='';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.innerText=o;if(o===sel)op.selected=true;el.appendChild(op);});}
 function fillSelectOther(id,opts,sel){const el=document.getElementById(id);el.innerHTML='';let found=false;opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.innerText=o;if(o===sel){op.selected=true;found=true;}el.appendChild(op);});const otherOp=document.createElement('option');otherOp.value='OTRO';otherOp.innerText='OTRO (Escribir manual)';el.appendChild(otherOp);const baseId=id.replace('editor','');const otherInput=document.getElementById(id+'Other');if(sel&&!found){el.value='OTRO';otherInput.value=sel;otherInput.classList.add('visible');}else{otherInput.classList.remove('visible');otherInput.value='';}}
 function checkOther(type){const sel=document.getElementById('editor'+type);const inp=document.getElementById('editor'+type+'Other');if(sel.value==='OTRO')inp.classList.add('visible');else inp.classList.remove('visible');}
 function getSelectVal(id){const sel=document.getElementById(id);if(sel.value==='OTRO')return document.getElementById(id+'Other').value.toUpperCase();return sel.value;}
-function addEmployee(){const n=document.getElementById('newEmpName').value.toUpperCase();if(n){appData.employees.push({id:Date.now(),name:n,role:document.getElementById('newEmpRole').value,status:'Disponible'});save();renderConfigLists();document.getElementById('newEmpName').value='';}}
+function addEmployee(){
+    const n = document.getElementById('newEmpName').value.toUpperCase();
+    const dist = parseInt(document.getElementById('newEmpDistance').value) || 5; // 5 por defecto
+    if(n){
+        appData.employees.push({
+            id: Date.now(),
+            name: n,
+            role: document.getElementById('newEmpRole').value,
+            status: 'Disponible',
+            distanceScore: dist // Guardamos la distancia inicial
+        });
+        save();
+        renderConfigLists();
+        document.getElementById('newEmpName').value='';
+        document.getElementById('newEmpDistance').value='';
+    }
+}
 function addSite(){const n=document.getElementById('newSiteName').value.toUpperCase();if(n&&!appData.sites.includes(n)){appData.sites.push(n);save();renderConfigLists();document.getElementById('newSiteName').value='';}}
 function addActivity(){const n=document.getElementById('newActivityName').value.toUpperCase();if(n&&!appData.activities.includes(n)){appData.activities.push(n);save();renderConfigLists();document.getElementById('newActivityName').value='';}}
 function getLastOperationalShift(empId){const currentP=document.getElementById('monthSelectorSug').value;const pIdx=PERIODS.indexOf(currentP);for(let i=pIdx;i>=0;i--){const pName=PERIODS[i];if(pName==="DICIEMBRE 2025")continue;const userRecs=appData.records[pName][empId];if(!userRecs)continue;for(let d=30;d>=0;d--){const rec=userRecs[d];if(rec&&rec.activity){const actUpper=rec.activity.toUpperCase();let ignored=false;for(let ign of IGNORE_SHIFT_ACTIVITIES)if(actUpper.includes(ign))ignored=true;if(!ignored&&(rec.shift==='Diurno'||rec.shift==='Nocturno'))return{shift:rec.shift,activity:rec.activity,date:`Dia ${d+1} ${pName.slice(0,3)}`};}}}return null;}
@@ -672,6 +709,15 @@ function setAllAvailable(){if(!confirm("¿Estás seguro de poner a TODOS los emp
 function deleteEmployee(id){if(confirm('¿Eliminar empleado? Esto borrará su historial.')){appData.employees=appData.employees.filter(e=>e.id!==id);save();renderConfigLists();}}
 function exportToExcel(){const table=document.getElementById('payrollTable');const p=document.getElementById('monthSelector').value;const html=table.outerHTML;const url='data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(html);const downloadLink=document.createElement("a");document.body.appendChild(downloadLink);downloadLink.href=url;downloadLink.download=`Nomina_${p}.xls`;downloadLink.click();document.body.removeChild(downloadLink);}
 async function downloadData(){const str=JSON.stringify(appData);try{const handle=await window.showSaveFilePicker({suggestedName:'icg_backup.json',types:[{description:'JSON File',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(str);await writable.close();}catch(err){if(err.name!=='AbortError'){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(str);a.download="icg_backup_v1.0.json";document.body.appendChild(a);a.click();a.remove();}}setDirty(false);}
+
+function changeDistance(id, newDist){
+    const emp = appData.employees.find(e => e.id == id);
+    if(emp){
+        emp.distanceScore = parseInt(newDist) || 5;
+        save();
+        renderSuggestions(); // Recalcula las sugerencias si cambias a alguien
+    }
+}
 
 function loadBackup(input){
     const reader=new FileReader();
