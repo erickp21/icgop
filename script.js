@@ -23,16 +23,26 @@ const IGNORE_SHIFT_ACTIVITIES = ["ATESTIGUAMIENTO", "INSPECCION", "MUESTREO", "D
 const DEFAULT_SITES = ["Sidor", "Bauxilum", "Fmo", "Copal", "Palua", "Punta de Piedras"];
 const DEFAULT_ACTIVITIES = ["Buque", "Gabarra", "Muestreo", "Atestiguamiento", "Draft Survey"];
 const DEFAULT_EMPLOYEES = [
-    { id: 1, name: "PEDRO GONZALEZ", role: "Supervisor", status: "Disponible" }, { id: 2, name: "JONNY FLORES", role: "Supervisor", status: "Disponible" },
-    { id: 3, name: "JORGE CEDEÑO", role: "Supervisor", status: "Disponible" }, { id: 4, name: "DIEGO RODRIGUEZ", role: "Supervisor", status: "Disponible" },
-    { id: 5, name: "DARIS PINTO", role: "Tecnico de Seguridad", status: "Disponible" }, { id: 6, name: "YENNYRES SUBERO", role: "Tecnico de Seguridad", status: "Disponible" },
-    { id: 7, name: "GRISBELYS ASTUDILLO", role: "Tecnico de Seguridad", status: "Disponible" }, { id: 8, name: "YUER MONTILLA", role: "Tecnico de Seguridad", status: "Disponible" },
-    { id: 9, name: "ALEXANDER MEDINA", role: "Inspector", status: "Disponible" }, { id: 10, name: "FABIAN SOTO", role: "Inspector", status: "Disponible" },
-    { id: 11, name: "AQUILES MAITA", role: "Inspector", status: "Disponible" }, { id: 12, name: "STEFANI ROJAS", role: "Inspector", status: "Disponible" },
-    { id: 13, name: "MARIA NORIEGA", role: "Inspector", status: "Disponible" }, { id: 14, name: "LEOMAR MARCANO", role: "Inspector", status: "Disponible" },
-    { id: 15, name: "JOEL RODRIGUEZ", role: "Inspector", status: "Disponible" }, { id: 16, name: "CARLOS FIGUERA", role: "Inspector", status: "Disponible" },
-    { id: 17, name: "ENRIQUE GONZALEZ", role: "Inspector", status: "Disponible" }, { id: 18, name: "KEINEL PALENCIA", role: "Inspector", status: "Disponible" },
-    { id: 19, name: "BRAYAN PEREZ", role: "Inspector", status: "Disponible" }, { id: 20, name: "CARLOS CORO", role: "Inspector", status: "Disponible" },
+    { id: 1, name: "PEDRO GONZALEZ", role: "Supervisor", status: "Disponible" }, 
+    { id: 2, name: "JONNY FLORES", role: "Supervisor", status: "Disponible" },
+    { id: 3, name: "JORGE CEDEÑO", role: "Supervisor", status: "Disponible" }, 
+    { id: 4, name: "DIEGO RODRIGUEZ", role: "Supervisor", status: "Disponible" },
+    { id: 5, name: "DARIS PINTO", role: "Tecnico de Seguridad", status: "Disponible" }, 
+    { id: 6, name: "YENNYRES SUBERO", role: "Tecnico de Seguridad", status: "Disponible" },
+    { id: 7, name: "GRISBELYS ASTUDILLO", role: "Tecnico de Seguridad", status: "Disponible" }, 
+    { id: 8, name: "YUER MONTILLA", role: "Tecnico de Seguridad", status: "Disponible" },
+    { id: 9, name: "ALEXANDER MEDINA", role: "Inspector", status: "Disponible" }, 
+    { id: 10, name: "FABIAN SOTO", role: "Inspector", status: "Disponible" },
+    { id: 11, name: "AQUILES MAITA", role: "Inspector", status: "Disponible" }, 
+    { id: 12, name: "STEFANI ROJAS", role: "Inspector", status: "Disponible" },
+    { id: 13, name: "MARIA NORIEGA", role: "Inspector", status: "Disponible" }, 
+    { id: 14, name: "LEOMAR MARCANO", role: "Inspector", status: "Disponible" },
+    { id: 15, name: "JOEL RODRIGUEZ", role: "Inspector", status: "Disponible" }, 
+    { id: 16, name: "CARLOS FIGUERA", role: "Inspector", status: "Disponible" },
+    { id: 17, name: "ENRIQUE GONZALEZ", role: "Inspector", status: "Disponible" }, 
+    { id: 18, name: "KEINEL PALENCIA", role: "Inspector", status: "Disponible" },
+    { id: 19, name: "BRAYAN PEREZ", role: "Inspector", status: "Disponible" }, 
+    { id: 20, name: "CARLOS CORO", role: "Inspector", status: "Disponible" },
     { id: 21, name: "JULIE PEÑA", role: "Inspector", status: "Disponible" }
 ];
 
