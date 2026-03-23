@@ -367,10 +367,16 @@ function renderSuggestions() {
     const p = document.getElementById('monthSelectorSug').value; 
     const currentYear = p.split(' ')[1];
     const pIdx = PERIODS.indexOf(p);
+
+    // 1. Detectar a nivel global si ya hay alguien "En Guardia" que viva lejos (Nivel 8 o más)
+    const isHighDistanceEnGuardia = appData.employees.some(e => 
+        e.status === "En Guardia" && (e.distanceScore || 5) >= 8
+    );
     
     ROLES.forEach(role => {
         const group = appData.employees.filter(e => e.role === role);
         const activeGroup = group.filter(e => e.status !== "Vacaciones" && e.status !== "Reposo");
+        
         const ranking = activeGroup.map(emp => {
             let cur = 0;
             if(p === "DICIEMBRE 2025") cur = (appData.historical2025[emp.id]?.month || 0);
@@ -389,12 +395,25 @@ function renderSuggestions() {
                 if(appData.records[x]&&appData.records[x][emp.id]) ann += appData.records[x][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0); 
             });
             
-            return { name: emp.name, cur, prev, ann, lastOp: getLastOperationalShift(emp.id), status: emp.status };
+            // 2. Agregamos la extracción de la distancia (por defecto 5 si no existe)
+            return { name: emp.name, cur, prev, ann, lastOp: getLastOperationalShift(emp.id), status: emp.status, distance: emp.distanceScore || 5 };
         });
         
         ranking.sort((a,b) => {
+            // Regla original 1: Ocupados van al fondo
             if (a.status === "En Guardia" && b.status !== "En Guardia") return 1;
             if (a.status !== "En Guardia" && b.status === "En Guardia") return -1;
+
+            // NUEVA REGLA DE TRANSPORTE: Penalizar lejanías múltiples
+            if (isHighDistanceEnGuardia) {
+                const aIsHigh = a.distance >= 8;
+                const bIsHigh = b.distance >= 8;
+                
+                if (aIsHigh && !bIsHigh) return 1;  // Baja 'a' en la prioridad
+                if (!aIsHigh && bIsHigh) return -1; // Baja 'b' en la prioridad
+            }
+
+            // Regla original 2: Filtro financiero intacto
             const bimestralA = a.cur + a.prev;
             const bimestralB = b.cur + b.prev;
             if (bimestralA !== bimestralB) return bimestralA - bimestralB;
@@ -408,10 +427,17 @@ function renderSuggestions() {
             let nextInfo = '';
             if(r.lastOp) { nextInfo = `<span class="shift-info">Últ: <span class="badge-shift ${r.lastOp.shift==='Diurno'?'shift-day':'shift-night'}">${r.lastOp.shift.substring(0,1)}</span> (${r.lastOp.activity.substring(0,6)}..)</span>`; }
             else { nextInfo = '<span class="shift-info" style="color:#cbd5e1">-</span>'; }
+            
             let statusBadge = '';
             if(r.status === "En Guardia") statusBadge = `<span class="badge-status-busy">⚠️ OCUPADO</span>`;
-            rows += `<tr style="${r.status==='En Guardia'?'background:#fffbeb; opacity:0.7':''}"><td>${statusBadge} ${isLow ? '<span class="badge-low">BAJO</span> ' : ''}<b>${r.name}</b>${nextInfo}</td><td class="money" style="color:${r.cur<1?'#dc2626':'#16a34a'}">$${r.cur}</td><td class="money prev-month">$${r.prev}</td><td class="money" style="color:var(--accent)">$${r.ann}</td></tr>`;
+            
+            // 3. Indicador visual para saber rápidamente quién tiene un puntaje alto de distancia
+            let distanceBadge = r.distance >= 8 ? `<span title="Distancia: ${r.distance}/10" style="font-size:0.7rem;">🚗 Lejos</span> ` : '';
+
+            // 4. Inyección del indicador en la celda del nombre
+            rows += `<tr style="${r.status==='En Guardia'?'background:#fffbeb; opacity:0.7':''}"><td>${statusBadge} ${isLow ? '<span class="badge-low">BAJO</span> ' : ''}<b>${r.name}</b> ${distanceBadge}${nextInfo}</td><td class="money" style="color:${r.cur<1?'#dc2626':'#16a34a'}">$${r.cur}</td><td class="money prev-month">$${r.prev}</td><td class="money" style="color:var(--accent)">$${r.ann}</td></tr>`;
         });
+        
         const card = document.createElement('div'); card.className='dash-card';
         card.id = `card-sug-${role}`; 
         card.innerHTML = `<div class="dash-title">${role}</div><table class="rank-table" id="table-sug-${role}"><thead><tr><th>Nombre</th><th>Mes Actual</th><th>Mes Ant.</th><th>Anual</th></tr></thead><tbody>${rows}</tbody></table>`;
