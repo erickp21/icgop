@@ -103,11 +103,18 @@ function setupDefault() {
 
 function loadParsedData(parsed, isEmbedded) {
     if(!parsed.historical2025) parsed.historical2025 = {};
-    if(parsed.employees) parsed.employees.forEach(e => { if(!e.status) e.status = "Disponible"; });
-    if(parsed.records) {
-        const newRecords = {};
-        Object.keys(parsed.records).forEach(key => { newRecords[key.toUpperCase()] = parsed.records[key]; });
-        parsed.records = newRecords;
+    
+    if(parsed.employees) {
+        parsed.employees.forEach(e => { 
+            if(!e.status) e.status = "Disponible"; 
+            
+            // NUEVO: Migración de datos para inyectar las distancias
+            if(e.distanceScore === undefined) {
+                // Busca al empleado en la lista por defecto y le copia su distancia
+                const defEmp = DEFAULT_EMPLOYEES.find(d => d.id === e.id);
+                e.distanceScore = defEmp ? defEmp.distanceScore : 5;
+            }
+        });
     }
     appData = parsed;
     
@@ -672,6 +679,7 @@ function renderConfigLists(){
             <option value="En Guardia" ${e.status==='En Guardia'?'selected':''}>🟡 Guardia</option>
             <option value="Vacaciones" ${e.status==='Vacaciones'?'selected':''}>🔴 Vacac.</option>
             <option value="Reposo" ${e.status==='Reposo'?'selected':''}>🔴 Reposo</option>
+            <option value="No Justificado" ${e.status==='No Justificado'?'selected':''}>🔴 No Just.</option>
         </select>
     </div>`,(id)=>{deleteEmployee(id);});
     
