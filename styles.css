@@ -63,7 +63,20 @@ body {
 .view-section.active { display: flex; }
 
 .config-container { padding: 1.5rem; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; align-items: start; }
+.config-grid { 
+    display: grid; 
+    /* Columna izq más ancha (2fr) y columna der más delgada (1fr) */
+    grid-template-columns: 2fr 1fr; 
+    gap: 1rem; 
+    align-items: start; 
+}
+
+/* En tablets o celulares, volvemos a una sola columna apilada */
+@media (max-width: 1024px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+}
 .card { background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .card h3 { margin-top: 0; margin-bottom: 0.8rem; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; color: var(--primary); }
 .list-group { list-style: none; padding: 0; margin: 0; }
@@ -213,7 +226,10 @@ td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--borde
 /* --- UTILITY & NEW CLASSES FROM INLINE STYLES --- */
 .print-th-emp { width: 50%; }
 .print-th-month, .print-th-year { width: 25%; }
-.card-span-2 { grid-row: span 2; }
+/* Le decimos al cuadro que abarque 3 filas hacia abajo para darle espacio a las 3 tarjetas de la derecha */
+.card-span-2 { 
+    grid-row: span 3; 
+}
 .card-desc { font-size: 0.8rem; color: #64748b; }
 .card-desc-small { font-size: 0.75rem; color: #64748b; }
 .input-group { display: flex; gap: 5px; margin-bottom: 10px; }

@@ -657,7 +657,7 @@ function hideTooltip(){tt.style.display='none';}
 
 function renderL(id,arr,fmt,del){const el=document.getElementById(id);if(!el)return;el.innerHTML='';arr.forEach((x,i)=>{const l=document.createElement('li');l.className='list-item';l.innerHTML=fmt(x);const b=document.createElement('button');b.className='delete-btn';b.innerText='✕';b.onclick=()=>{del(x.id?x.id:i);save();renderConfigLists();};l.appendChild(b);el.appendChild(l);});}
 function renderConfigLists(){
-    renderL('employeeList',appData.employees,e=>`<div style="display:flex;align-items:center;width:100%;gap:10px;">
+    renderL('employeeList',appData.employees,e=>`<div style="display:flex;align-items:center;width:100%;gap:10px;flex-wrap:wrap;">
         <div style="flex:1;min-width:120px;"><b>${e.name}</b></div>
         
         <input type="number" class="dist-select" min="1" max="10" title="Distancia (1-10)" value="${e.distanceScore || 5}" onchange="changeDistance(${e.id}, this.value)">
