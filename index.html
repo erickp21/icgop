@@ -38,6 +38,7 @@
             <div id="unsavedDot" class="unsaved-dot"></div>
         </button>
         <button class="nav-btn" onclick="switchTab('nomina')">📅 Nómina</button>
+        <button class="nav-btn" onclick="switchTab('registro')">📝 Reg. Rápido</button>
         <button class="nav-btn" onclick="switchTab('sugerencias')">💡 Sugerencias</button>
         <button class="nav-btn" onclick="switchTab('graficos')">📈 Gráficos</button>
         <button class="nav-btn" onclick="switchTab('analytics')">📊 Gerencia</button>
@@ -152,6 +153,62 @@
                     <strong>📊 Lógica de orden actual:</strong> Ventana Bimestral (Prioridad al que sume menos entre el Mes Actual y el Mes Anterior. Desempate: Anual).
                 </div>
                 <div class="dashboard-grid" id="suggestionGrid"></div>
+            </div>
+        </section>
+
+        <section id="tab-registro" class="view-section">
+            <div class="dashboard-container">
+                <h2 class="section-title">📝 Registro Rápido de Operaciones</h2>
+                <p class="section-desc">Carga masiva basada en la estructura del formato Excel. La información se reflejará automáticamente en la Nómina.</p>
+
+                <div class="config-grid">
+                    <div class="card">
+                        <h3 style="color:var(--accent);">1. Datos de la Operación</h3>
+                        
+                        <div class="form-group mt-20">
+                            <label class="form-label">Periodo de Nómina</label>
+                            <select id="qrPeriod" class="form-control period-selector"></select>
+                        </div>
+                        
+                        <div class="form-row-split mt-20">
+                            <div class="form-group">
+                                <label class="form-label">Desde el día:</label>
+                                <input type="number" id="qrStartDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hasta el día:</label>
+                                <input type="number" id="qrEndDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-20">
+                            <label class="form-label">Sitio / Lugar</label>
+                            <select id="qrSite" class="form-control"></select>
+                        </div>
+                        
+                        <div class="form-group mt-20">
+                            <label class="form-label">Operación / Actividad</label>
+                            <select id="qrActivity" class="form-control"></select>
+                        </div>
+                        
+                        <div class="form-group mt-20">
+                            <label class="form-label">Embarcación / Notas (Opcional)</label>
+                            <input type="text" id="qrObs" class="form-control" placeholder="Ej: COPAL EMI 1150 / 7.471TM">
+                        </div>
+                    </div>
+
+                    <div class="card card-span-2">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="color:var(--accent);">2. Personal Asignado</h3>
+                            <button class="compact-btn btn-add" onclick="addQuickRow()">+ Agregar Persona</button>
+                        </div>
+                        
+                        <div id="quickEntryList" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+                            </div>
+
+                        <button class="btn-save" style="margin-top:30px; font-size:1.1rem; padding:12px; background:#10b981;" onclick="saveQuickOperation()">💾 GUARDAR EN NÓMINA</button>
+                    </div>
+                </div>
             </div>
         </section>
 
