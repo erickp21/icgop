@@ -159,7 +159,7 @@
         <section id="tab-registro" class="view-section">
             <div class="dashboard-container">
                 <h2 class="section-title">📝 Registro Rápido de Operaciones</h2>
-                <p class="section-desc">Carga masiva basada en la estructura del formato Excel. La información se reflejará automáticamente en la Nómina.</p>
+                <p class="section-desc">Carga masiva de datos. La información se reflejará automáticamente en la Nómina.</p>
 
                 <div class="config-grid">
                     <div class="card">
@@ -183,17 +183,23 @@
                         
                         <div class="form-group mt-20">
                             <label class="form-label">Sitio / Lugar</label>
-                            <select id="qrSite" class="form-control"></select>
+                            <select id="qrSite" class="form-control" onchange="recalculateAllQuickRows()"></select>
                         </div>
                         
-                        <div class="form-group mt-20">
-                            <label class="form-label">Operación / Actividad</label>
-                            <select id="qrActivity" class="form-control"></select>
+                        <div class="form-row-split mt-20">
+                            <div class="form-group">
+                                <label class="form-label">Operación / Actividad</label>
+                                <select id="qrActivity" class="form-control" onchange="recalculateAllQuickRows()"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Toneladas Cargadas</label>
+                                <input type="number" id="qrTons" class="form-control" placeholder="Ej: 7500" min="0" onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
+                            </div>
                         </div>
                         
                         <div class="form-group mt-20">
                             <label class="form-label">Embarcación / Notas (Opcional)</label>
-                            <input type="text" id="qrObs" class="form-control" placeholder="Ej: COPAL EMI 1150 / 7.471TM">
+                            <input type="text" id="qrObs" class="form-control" placeholder="Ej: COPAL EMI 1150">
                         </div>
                     </div>
 

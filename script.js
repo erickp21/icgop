@@ -758,24 +758,76 @@ function resetData(){
     }
 }
 
-/* --- LÓGICA DE REGISTRO RÁPIDO --- */
+/* --- LÓGICA DE REGISTRO RÁPIDO Y TABULADORES --- */
+const TABULADORES = {
+    "Sidor": {
+        "Buques/Gabarras": [
+            { min: 0, max: 6000, roles: {"Supervisor": 50, "Tecnico de Seguridad": 50, "Inspector": 30} },
+            { min: 6001, max: 9000, roles: {"Supervisor": 100, "Tecnico de Seguridad": 100, "Inspector": 60} },
+            { min: 9001, max: 12000, roles: {"Supervisor": 150, "Tecnico de Seguridad": 150, "Inspector": 100} },
+            { min: 12001, max: 15000, roles: {"Supervisor": 190, "Tecnico de Seguridad": 190, "Inspector": 130} },
+            { min: 15001, max: 20000, roles: {"Supervisor": 260, "Tecnico de Seguridad": 260, "Inspector": 180} },
+            { min: 20001, max: 30000, roles: {"Supervisor": 390, "Tecnico de Seguridad": 390, "Inspector": 270} },
+            { min: 30001, max: 40000, roles: {"Supervisor": 520, "Tecnico de Seguridad": 520, "Inspector": 360} },
+            { min: 40001, max: 45000, roles: {"Supervisor": 580, "Tecnico de Seguridad": 580, "Inspector": 400} },
+            { min: 45001, max: 50000, roles: {"Supervisor": 650, "Tecnico de Seguridad": 650, "Inspector": 450} },
+            { min: 50001, max: 51000, roles: {"Supervisor": 660, "Tecnico de Seguridad": 660, "Inspector": 460} },
+            { min: 51001, max: 52000, roles: {"Supervisor": 676, "Tecnico de Seguridad": 676, "Inspector": 470} },
+            { min: 52001, max: 53000, roles: {"Supervisor": 689, "Tecnico de Seguridad": 689, "Inspector": 480} },
+            { min: 53001, max: 54000, roles: {"Supervisor": 700, "Tecnico de Seguridad": 700, "Inspector": 490} },
+            { min: 54001, max: 55000, roles: {"Supervisor": 715, "Tecnico de Seguridad": 715, "Inspector": 500} }, 
+        ]
+    },
+    "Copal":{
+        "Buques/Gabarras": [
+            { min: 0, max: 6000, roles: {"Inspector": 30} },
+            { min: 6001, max: 12000, roles: {"Inspector": 80} },
+            { min: 12001, max: 20000, roles: {"Inspector": 120} },
+            { min: 20001, max: 30000, roles: {"Inspector": 150} },
+        ]
+    },
+    "Fmo": { // Ajustado a "Fmo" para coincidir con tu BD
+        "Buques/Gabarras": [
+            { min: 0, max: 6000, roles: {"Inspector": 30} },
+            { min: 6001, max: 12000, roles: {"Inspector": 80} },
+            { min: 12001, max: 20000, roles: {"Inspector": 120} },
+            { min: 20001, max: 30000, roles: {"Inspector": 150} },
+        ]
+    },
+    "Bauxilum": {
+        "Buques/Gabarras": [
+            { min: 0, max: 6000, roles: {"Inspector": 30} },
+            { min: 6001, max: 9000, roles: {"Inspector": 60} },
+            { min: 9001, max: 12000, roles: {"Inspector": 100} },
+            { min: 12001, max: 15000, roles: {"Inspector": 130} },
+            { min: 15001, max: 20000, roles: {"Inspector": 180} },
+            { min: 20001, max: 30000, roles: {"Inspector": 270} },
+            { min: 30001, max: 40000, roles: {"Inspector": 360} },
+            { min: 40001, max: 45000, roles: {"Inspector": 400} },
+            { min: 45001, max: 50000, roles: {"Inspector": 450} },
+            { min: 50001, max: 51000, roles: {"Inspector": 460} },
+            { min: 51001, max: 52000, roles: {"Inspector": 470} },
+            { min: 52001, max: 53000, roles: {"Inspector": 480} },
+            { min: 53001, max: 54000, roles: {"Inspector": 490} },
+            { min: 54001, max: 55000, roles: {"Inspector": 500} },
+        ]
+    }
+};
+
 let quickRows = [];
 
 function initQuickEntry() {
-    // Llenar selectores con la data actual
     const selPeriod = document.getElementById('qrPeriod');
     selPeriod.innerHTML = document.getElementById('monthSelector').innerHTML;
     selPeriod.value = document.getElementById('monthSelector').value;
-    
     fillSelect('qrSite', appData.sites, appData.sites[0]);
     fillSelect('qrActivity', appData.activities, appData.activities[0]);
-    
-    if(quickRows.length === 0) addQuickRow(); // Empieza con una fila vacía
+    if(quickRows.length === 0) addQuickRow(); 
     else renderQuickRows();
 }
 
 function addQuickRow() {
-    quickRows.push({ empId: '', role: 'Inspector', shift: 'Diurno', amount: '' });
+    quickRows.push({ empId: '', role: 'Inspector', shift: 'Diurno', amount: '', isAuto: false });
     renderQuickRows();
 }
 
@@ -784,16 +836,90 @@ function removeQuickRow(index) {
     renderQuickRows();
 }
 
+// 🧠 MOTOR DE CÁLCULO
+function getTabuladorPrice(site, activity, tons, role) {
+    if (!tons || tons <= 0) return null;
+    const siteUpper = site.toUpperCase();
+    const actUpper = activity.toUpperCase();
+    
+    // Clasificar actividad
+    let tabAct = null;
+    if (actUpper.includes("BUQUE") || actUpper.includes("GABARRA")) tabAct = "Buques/Gabarras";
+    else return null; 
+
+    // Buscar si la zona tiene tabulador
+    const siteKey = Object.keys(TABULADORES).find(k => k.toUpperCase() === siteUpper);
+    if (!siteKey || !TABULADORES[siteKey][tabAct]) return null;
+
+    const ranges = TABULADORES[siteKey][tabAct];
+    let selectedTier = null;
+    
+    // Buscar el rango de toneladas
+    for (let i = 0; i < ranges.length; i++) {
+        if (tons >= ranges[i].min && tons <= ranges[i].max) { selectedTier = ranges[i]; break; }
+    }
+    // Desbordamiento: Si es mayor al máximo estipulado, tomar el más alto
+    if (!selectedTier && tons > ranges[ranges.length - 1].max) { selectedTier = ranges[ranges.length - 1]; }
+    if (!selectedTier) return null;
+
+    // Regla de aplanamiento de roles (Solo Sidor distingue, el resto paga a precio de Inspector)
+    let roleToLookUp = role;
+    if (siteKey !== "Sidor") roleToLookUp = "Inspector";
+
+    let price = selectedTier.roles[roleToLookUp];
+    if (price === undefined) price = selectedTier.roles["Inspector"]; // Red de seguridad
+
+    return price;
+}
+
+// 🔄 ACTUALIZA TODA LA LISTA AL CAMBIAR SITIO, ACTIVIDAD O TONELADAS
+function recalculateAllQuickRows() {
+    const site = document.getElementById('qrSite').value;
+    const act = document.getElementById('qrActivity').value;
+    const tons = parseFloat(document.getElementById('qrTons').value) || 0;
+    
+    let updatedAny = false;
+    quickRows.forEach(row => {
+        if(!row.empId) return;
+        const autoPrice = getTabuladorPrice(site, act, tons, row.role);
+        if (autoPrice !== null) {
+            row.amount = autoPrice;
+            row.isAuto = true;
+            updatedAny = true;
+        } else {
+            row.isAuto = false; // Se apaga la luz verde, mantiene el número que tenga
+        }
+    });
+
+    renderQuickRows();
+    if(updatedAny) showToast("💡 Tarifas aplicadas según tabulador");
+}
+
 function updateQuickRow(index, field, value) {
     quickRows[index][field] = value;
-    // Si elige un empleado, auto-completamos su cargo predeterminado
+    
+    // Si edita el monto manualmente, quitamos la marca verde de auto-cálculo
+    if(field === 'amount') quickRows[index].isAuto = false;
+
+    // Autocompletar el rol si cambia de empleado
     if(field === 'empId') {
         const emp = appData.employees.find(e => e.id == value);
-        if(emp) {
-            quickRows[index].role = emp.role;
-            renderQuickRows(); 
+        if(emp) quickRows[index].role = emp.role;
+    }
+
+    // Si cambia empleado o cargo, recalculamos su precio individualmente
+    if(field === 'empId' || field === 'role') {
+        const site = document.getElementById('qrSite').value;
+        const act = document.getElementById('qrActivity').value;
+        const tons = parseFloat(document.getElementById('qrTons').value) || 0;
+        const autoPrice = getTabuladorPrice(site, act, tons, quickRows[index].role);
+        if (autoPrice !== null) {
+            quickRows[index].amount = autoPrice;
+            quickRows[index].isAuto = true;
         }
     }
+    
+    renderQuickRows(); 
 }
 
 function renderQuickRows() {
@@ -805,6 +931,9 @@ function renderQuickRows() {
 
     let html = '';
     quickRows.forEach((row, i) => {
+        const autoClass = row.isAuto ? 'auto-calc' : '';
+        const autoTitle = row.isAuto ? 'Calculado por Tabulador' : 'Monto manual';
+
         html += `
         <div class="qr-row">
             <select class="form-control qr-emp-select" onchange="updateQuickRow(${i}, 'empId', this.value)">
@@ -822,7 +951,7 @@ function renderQuickRows() {
                 <option value="Mixto" ${row.shift == 'Mixto' ? 'selected' : ''}>⚖️ Mixto (M)</option>
             </select>
             
-            <input type="number" class="form-control qr-amount-input" placeholder="Monto ($)" value="${row.amount}" onchange="updateQuickRow(${i}, 'amount', parseFloat(this.value) || 0)">
+            <input type="number" class="form-control qr-amount-input ${autoClass}" placeholder="Monto ($)" value="${row.amount}" title="${autoTitle}" onchange="updateQuickRow(${i}, 'amount', parseFloat(this.value) || 0)">
             
             <button class="qr-delete" onclick="removeQuickRow(${i})" title="Quitar fila">✕</button>
         </div>`;
@@ -837,58 +966,44 @@ function saveQuickOperation() {
     const site = document.getElementById('qrSite').value;
     const act = document.getElementById('qrActivity').value;
     const obs = document.getElementById('qrObs').value.toUpperCase();
+    const tons = document.getElementById('qrTons').value; // Solo para añadirlo a la nota
 
-    // 1. Validaciones de seguridad
     if(!startD || !endD || startD > endD || startD < 1 || endD > 31) { alert("⚠️ Verifica los días de inicio y fin (Del 1 al 31)."); return; }
     if(quickRows.length === 0) { alert("⚠️ Debes agregar al menos a una persona a la lista."); return; }
-    
-    let validEmps = true;
-    quickRows.forEach(r => { if(!r.empId) validEmps = false; });
+    let validEmps = true; quickRows.forEach(r => { if(!r.empId) validEmps = false; });
     if(!validEmps) { alert("⚠️ Hay filas sin empleado seleccionado. Verifica la lista."); return; }
 
     const span = endD - startD + 1;
-
-    // 2. Inyectar datos en la Nómina Maestra
     if (!appData.records[p]) appData.records[p] = {};
+    
+    // Inyectar Toneladas en la nota automáticamente si existen
+    let finalObs = obs;
+    if (tons > 0 && finalObs !== "") finalObs += ` / ${tons}TM`;
+    else if (tons > 0) finalObs = `${tons}TM`;
 
     quickRows.forEach(row => {
         const eId = row.empId;
         const amount = parseFloat(row.amount) || 0;
-        
         let userRow = appData.records[p][eId];
-        if (!userRow) { userRow = Array(31).fill(null); } 
-        else if (userRow.length < 31) { while (userRow.length < 31) { userRow.push(null); } }
-        
-        // Limpiamos la casilla inicial por si ya había algo
+        if (!userRow) { userRow = Array(31).fill(null); } else if (userRow.length < 31) { while (userRow.length < 31) { userRow.push(null); } }
         const oldRec = userRow[startD-1];
         const oldSpan = oldRec ? (oldRec.span || 1) : 1;
         for(let d=0; d<oldSpan; d++) { if((startD-1) + d < 31) userRow[(startD-1) + d] = null; }
-
-        // Vaciamos el rango que vamos a ocupar
         for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } 
-        
-        // Asignamos la nueva guardia
         if (amount > 0) {
-            const commonData = { role: row.role, site: site, activity: act, shift: row.shift, obs: obs };
+            const commonData = { role: row.role, site: site, activity: act, shift: row.shift, obs: finalObs };
             userRow[startD-1] = { amount: amount, span: span, ...commonData };
-            // Si son varios días, enlazamos las celdas (merge)
             for(let k=1; k < span; k++) { userRow[startD-1+k] = { amount: 0, linked: true, span: 0, ...commonData }; }
         }
-        
         appData.records[p][eId] = userRow;
     });
 
-    // 3. Guardar en Nube, actualizar interfaz y limpiar
-    save();
-    renderTable(p); 
-    
+    save(); renderTable(p); 
     quickRows = [];
     document.getElementById('qrObs').value = '';
-    document.getElementById('qrStartDay').value = '';
-    document.getElementById('qrEndDay').value = '';
-    addQuickRow(); // Dejamos una fila lista para la siguiente
-    
-    showToast("✅ ¡Operación masiva guardada en la nómina!");
+    document.getElementById('qrTons').value = '';
+    addQuickRow(); 
+    showToast("✅ ¡Operación guardada en la nómina!");
 }
 
 init();
