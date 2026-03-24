@@ -189,7 +189,8 @@
                         <div class="form-row-split mt-20">
                             <div class="form-group">
                                 <label class="form-label">Operación / Actividad</label>
-                                <select id="qrActivity" class="form-control" onchange="recalculateAllQuickRows()"></select>
+                                <select id="qrActivity" class="form-control" onchange="checkQrOther('Activity'); recalculateAllQuickRows()"></select>
+                                <input id="qrActivityOther" class="other-input form-control" placeholder="Especifique..." onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Toneladas Cargadas</label>

@@ -816,12 +816,23 @@ const TABULADORES = {
 
 let quickRows = [];
 
+// NUEVA FUNCIÓN: Muestra u oculta el input manual en el Registro Rápido
+function checkQrOther(type){
+    const sel = document.getElementById('qr' + type);
+    const inp = document.getElementById('qr' + type + 'Other');
+    if(sel.value === 'OTRO') inp.classList.add('visible');
+    else inp.classList.remove('visible');
+}
+
 function initQuickEntry() {
     const selPeriod = document.getElementById('qrPeriod');
     selPeriod.innerHTML = document.getElementById('monthSelector').innerHTML;
     selPeriod.value = document.getElementById('monthSelector').value;
     fillSelect('qrSite', appData.sites, appData.sites[0]);
-    fillSelect('qrActivity', appData.activities, appData.activities[0]);
+    
+    // CAMBIO AQUÍ: Usamos fillSelectOther en lugar de fillSelect
+    fillSelectOther('qrActivity', appData.activities, appData.activities[0]);
+    
     if(quickRows.length === 0) addQuickRow(); 
     else renderQuickRows();
 }
@@ -875,7 +886,7 @@ function getTabuladorPrice(site, activity, tons, role) {
 // 🔄 ACTUALIZA TODA LA LISTA AL CAMBIAR SITIO, ACTIVIDAD O TONELADAS
 function recalculateAllQuickRows() {
     const site = document.getElementById('qrSite').value;
-    const act = document.getElementById('qrActivity').value;
+    const act = getSelectVal('qrActivity');
     const tons = parseFloat(document.getElementById('qrTons').value) || 0;
     
     let updatedAny = false;
@@ -910,7 +921,7 @@ function updateQuickRow(index, field, value) {
     // Si cambia empleado o cargo, recalculamos su precio individualmente
     if(field === 'empId' || field === 'role') {
         const site = document.getElementById('qrSite').value;
-        const act = document.getElementById('qrActivity').value;
+        const act = getSelectVal('qrActivity');
         const tons = parseFloat(document.getElementById('qrTons').value) || 0;
         const autoPrice = getTabuladorPrice(site, act, tons, quickRows[index].role);
         if (autoPrice !== null) {
@@ -964,7 +975,7 @@ function saveQuickOperation() {
     const startD = parseInt(document.getElementById('qrStartDay').value);
     const endD = parseInt(document.getElementById('qrEndDay').value);
     const site = document.getElementById('qrSite').value;
-    const act = document.getElementById('qrActivity').value;
+    const act = getSelectVal('qrActivity');
     const obs = document.getElementById('qrObs').value.toUpperCase();
     const tons = document.getElementById('qrTons').value; // Solo para añadirlo a la nota
 
