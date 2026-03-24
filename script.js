@@ -185,10 +185,12 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
     event.target.classList.add('active'); document.getElementById('tab-' + tab).classList.add('active');
+    
     if(tab === 'nomina') handleMonthChange();
     if(tab === 'sugerencias') renderSuggestions();
     if(tab === 'graficos') renderAllCharts();
     if(tab === 'analytics') renderAnalytics();
+    if(tab === 'registro') initQuickEntry();
 }
 
 function handleMonthChange() {
@@ -754,6 +756,139 @@ function resetData(){
             location.reload();
         });
     }
+}
+
+/* --- LÓGICA DE REGISTRO RÁPIDO --- */
+let quickRows = [];
+
+function initQuickEntry() {
+    // Llenar selectores con la data actual
+    const selPeriod = document.getElementById('qrPeriod');
+    selPeriod.innerHTML = document.getElementById('monthSelector').innerHTML;
+    selPeriod.value = document.getElementById('monthSelector').value;
+    
+    fillSelect('qrSite', appData.sites, appData.sites[0]);
+    fillSelect('qrActivity', appData.activities, appData.activities[0]);
+    
+    if(quickRows.length === 0) addQuickRow(); // Empieza con una fila vacía
+    else renderQuickRows();
+}
+
+function addQuickRow() {
+    quickRows.push({ empId: '', role: 'Inspector', shift: 'Diurno', amount: '' });
+    renderQuickRows();
+}
+
+function removeQuickRow(index) {
+    quickRows.splice(index, 1);
+    renderQuickRows();
+}
+
+function updateQuickRow(index, field, value) {
+    quickRows[index][field] = value;
+    // Si elige un empleado, auto-completamos su cargo predeterminado
+    if(field === 'empId') {
+        const emp = appData.employees.find(e => e.id == value);
+        if(emp) {
+            quickRows[index].role = emp.role;
+            renderQuickRows(); 
+        }
+    }
+}
+
+function renderQuickRows() {
+    const container = document.getElementById('quickEntryList');
+    if (quickRows.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">No hay personal. Haz clic en "+ Agregar Persona".</div>';
+        return;
+    }
+
+    let html = '';
+    quickRows.forEach((row, i) => {
+        html += `
+        <div class="qr-row">
+            <select class="form-control qr-emp-select" onchange="updateQuickRow(${i}, 'empId', this.value)">
+                <option value="">-- Seleccionar Empleado --</option>
+                ${appData.employees.map(e => `<option value="${e.id}" ${e.id == row.empId ? 'selected' : ''}>${e.name}</option>`).join('')}
+            </select>
+            
+            <select class="form-control qr-role-select" onchange="updateQuickRow(${i}, 'role', this.value)">
+                ${ROLES.map(r => `<option value="${r}" ${r == row.role ? 'selected' : ''}>${r}</option>`).join('')}
+            </select>
+            
+            <select class="form-control qr-shift-select" onchange="updateQuickRow(${i}, 'shift', this.value)">
+                <option value="Diurno" ${row.shift == 'Diurno' ? 'selected' : ''}>☀️ Diurno (D)</option>
+                <option value="Nocturno" ${row.shift == 'Nocturno' ? 'selected' : ''}>🌙 Nocturno (N)</option>
+                <option value="Mixto" ${row.shift == 'Mixto' ? 'selected' : ''}>⚖️ Mixto (M)</option>
+            </select>
+            
+            <input type="number" class="form-control qr-amount-input" placeholder="Monto ($)" value="${row.amount}" onchange="updateQuickRow(${i}, 'amount', parseFloat(this.value) || 0)">
+            
+            <button class="qr-delete" onclick="removeQuickRow(${i})" title="Quitar fila">✕</button>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function saveQuickOperation() {
+    const p = document.getElementById('qrPeriod').value;
+    const startD = parseInt(document.getElementById('qrStartDay').value);
+    const endD = parseInt(document.getElementById('qrEndDay').value);
+    const site = document.getElementById('qrSite').value;
+    const act = document.getElementById('qrActivity').value;
+    const obs = document.getElementById('qrObs').value.toUpperCase();
+
+    // 1. Validaciones de seguridad
+    if(!startD || !endD || startD > endD || startD < 1 || endD > 31) { alert("⚠️ Verifica los días de inicio y fin (Del 1 al 31)."); return; }
+    if(quickRows.length === 0) { alert("⚠️ Debes agregar al menos a una persona a la lista."); return; }
+    
+    let validEmps = true;
+    quickRows.forEach(r => { if(!r.empId) validEmps = false; });
+    if(!validEmps) { alert("⚠️ Hay filas sin empleado seleccionado. Verifica la lista."); return; }
+
+    const span = endD - startD + 1;
+
+    // 2. Inyectar datos en la Nómina Maestra
+    if (!appData.records[p]) appData.records[p] = {};
+
+    quickRows.forEach(row => {
+        const eId = row.empId;
+        const amount = parseFloat(row.amount) || 0;
+        
+        let userRow = appData.records[p][eId];
+        if (!userRow) { userRow = Array(31).fill(null); } 
+        else if (userRow.length < 31) { while (userRow.length < 31) { userRow.push(null); } }
+        
+        // Limpiamos la casilla inicial por si ya había algo
+        const oldRec = userRow[startD-1];
+        const oldSpan = oldRec ? (oldRec.span || 1) : 1;
+        for(let d=0; d<oldSpan; d++) { if((startD-1) + d < 31) userRow[(startD-1) + d] = null; }
+
+        // Vaciamos el rango que vamos a ocupar
+        for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } 
+        
+        // Asignamos la nueva guardia
+        if (amount > 0) {
+            const commonData = { role: row.role, site: site, activity: act, shift: row.shift, obs: obs };
+            userRow[startD-1] = { amount: amount, span: span, ...commonData };
+            // Si son varios días, enlazamos las celdas (merge)
+            for(let k=1; k < span; k++) { userRow[startD-1+k] = { amount: 0, linked: true, span: 0, ...commonData }; }
+        }
+        
+        appData.records[p][eId] = userRow;
+    });
+
+    // 3. Guardar en Nube, actualizar interfaz y limpiar
+    save();
+    renderTable(p); 
+    
+    quickRows = [];
+    document.getElementById('qrObs').value = '';
+    document.getElementById('qrStartDay').value = '';
+    document.getElementById('qrEndDay').value = '';
+    addQuickRow(); // Dejamos una fila lista para la siguiente
+    
+    showToast("✅ ¡Operación masiva guardada en la nómina!");
 }
 
 init();
