@@ -9,6 +9,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+const auth = firebase.auth();
 
 const DATA_INCRUSTADA = null; 
 
@@ -44,6 +45,18 @@ const DEFAULT_EMPLOYEES = [
     { id: 19, name: "BRAYAN PEREZ", role: "Inspector", status: "Disponible", distanceScore: 6 }, 
     { id: 20, name: "CARLOS CORO", role: "Inspector", status: "Disponible", distanceScore: 8 }
 ];
+
+const USER_ROLES = {
+    // 3
+    "jose.solano@icglobal.com.ve": "J0s350lan0#",
+    "erick.patino@icglobal.com.ve": "1m3r1ck#Ep!",
+    "gilbert.gomez@icglobal.com.ve": "1mG0m3z#Gg!",
+    // 2
+    "rrhh@icglobal.com.ve": "Hum@nR3s0urc3s",
+    "administracion@icglobal.com.ve": "Adm1n1str@c10n",
+    // 1 
+    "asistentepzo@icglobal.com.ve": "J0sm3l1a#"
+};
 
 let appData = { employees: [...DEFAULT_EMPLOYEES], sites: [...DEFAULT_SITES], activities: [...DEFAULT_ACTIVITIES], records: {}, historical2025: {} };
 let currentEdit = { empId: null, dayIdx: null };
@@ -1017,4 +1030,75 @@ function saveQuickOperation() {
     showToast("✅ ¡Operación guardada en la nómina!");
 }
 
-init();
+/* --- LÓGICA DE SEGURIDAD Y LOGIN --- */
+
+// Escuchador de estado de sesión
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // Usuario logueado
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        applyRoles(user.email);
+        init(); // Cargamos los datos de la nube
+    } else {
+        // Usuario no logueado
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }
+});
+
+function loginUser(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    
+    btn.innerText = "Iniciando..."; err.style.display = "none";
+    
+    auth.signInWithEmailAndPassword(email, pass)
+        .then(() => { btn.innerText = "Ingresar"; })
+        .catch(error => {
+            btn.innerText = "Ingresar";
+            err.innerText = "Credenciales inválidas o usuario no existe.";
+            err.style.display = "block";
+        });
+}
+
+function logoutUser() {
+    auth.signOut().then(() => {
+        appData = { employees: [], sites: [], activities: [], records: {}, historical2025: {} }; // Limpia memoria
+        window.location.reload();
+    });
+}
+
+function applyRoles(email) {
+    const role = USER_ROLES[email] || "invitado";
+    
+    // Mostramos todo por defecto primero
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.style.display = 'inline-block');
+    
+    if (role === "adminglobal") {
+        // Tiene acceso a todo, no ocultamos nada
+        switchTab('config');
+    } 
+    else if (role === "rrhh") {
+        // Ocultar Gerencia
+        document.getElementById('nav-analytics').style.display = 'none';
+        switchTab('nomina');
+    } 
+    else if (role === "asistente") {
+        // Ocultar todo menos Registro Rápido
+        document.getElementById('nav-config').style.display = 'none';
+        document.getElementById('nav-nomina').style.display = 'none';
+        document.getElementById('nav-sugerencias').style.display = 'none';
+        document.getElementById('nav-graficos').style.display = 'none';
+        document.getElementById('nav-analytics').style.display = 'none';
+        switchTab('registro');
+    }
+    else {
+        // Si entra alguien que no está en la lista (emergencia de seguridad)
+        alert("Tu cuenta no tiene un rol asignado. Contacta al administrador.");
+        logoutUser();
+    }
+}

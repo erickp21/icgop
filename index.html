@@ -7,303 +7,326 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <body>
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-box">
+            <img src="logo.png" alt="Logo ICG" style="height: 60px; margin-bottom: 10px;">
+            <h2 style="margin-top:0; color:var(--primary);">Iniciar Sesión</h2>
+            <form id="loginForm" onsubmit="loginUser(event)">
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="loginPass" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-save" id="loginBtn">Ingresar</button>
+                <div id="loginError" style="color: red; font-size: 0.8rem; margin-top: 10px; display: none;"></div>
+            </form>
+        </div>
+    </div>
 
-    <div id="printSection">
+    <div id="mainApp" style="display: none;">
+        <div id="printSection">
         <h1 class="print-header-title" id="printHeaderTitle">REPORTE DE NÓMINA</h1>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th class="print-th-emp">EMPLEADO</th>
-                    <th class="print-th-month">TOTAL MES</th>
-                    <th class="print-th-year">ACUMULADO ANUAL</th>
-                </tr>
-            </thead>
-            <tbody id="printBody"></tbody>
-        </table>
-    </div>
-
-    <div id="printSuggestionsSection"></div>
-    <div id="globalTooltip" class="chart-tooltip"></div>
-    
-    <div id="toastNotif">☁️ ✅ Guardado en la nube</div>
-
-    <nav class="navbar">
-        <div class="brand-container">
-            <img src="logo.png" alt="Logo ICG" class="logo-img">
-            <div class="brand">ICG GESTOR V1.0</div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th class="print-th-emp">EMPLEADO</th>
+                        <th class="print-th-month">TOTAL MES</th>
+                        <th class="print-th-year">ACUMULADO ANUAL</th>
+                    </tr>
+                </thead>
+                <tbody id="printBody"></tbody>
+            </table>
         </div>
+
+        <div id="printSuggestionsSection"></div>
+        <div id="globalTooltip" class="chart-tooltip"></div>
         
-        <button class="nav-btn active" onclick="switchTab('config')">
-            ⚙️ Configuración
-            <div id="unsavedDot" class="unsaved-dot"></div>
-        </button>
-        <button class="nav-btn" onclick="switchTab('nomina')">📅 Nómina</button>
-        <button class="nav-btn" onclick="switchTab('registro')">📝 Reg. Rápido</button>
-        <button class="nav-btn" onclick="switchTab('sugerencias')">💡 Sugerencias</button>
-        <button class="nav-btn" onclick="switchTab('graficos')">📈 Gráficos</button>
-        <button class="nav-btn" onclick="switchTab('analytics')">📊 Gerencia</button>
-    </nav>
+        <div id="toastNotif">☁️ ✅ Guardado en la nube</div>
 
-    <div class="content-area">
-
-        <section id="tab-config" class="view-section active">
-            <div class="config-container">
-                <div class="config-grid">
-                    <div class="card card-span-2">
-                        <h3>👥 Personal, Cargo y Estatus</h3>
-                        <p class="card-desc">Gestiona aquí los ascensos de cargo y el estatus.</p>
-                        
-                        <button onclick="setAllAvailable()" class="btn-liberar">♻️ Poner TODOS en Disponible</button>
-                        
-                        <div class="input-group">
-                            <input type="text" id="newEmpName" placeholder="Nombre" class="compact-input flex-1">
-                            <select id="newEmpRole" class="compact-input">
-                                <option value="Supervisor">Supervisor</option>
-                                <option value="Tecnico de Seguridad">Técnico</option>
-                                <option value="Inspector">Inspector</option>
-                            </select>
-                            <input type="number" id="newEmpDistance" placeholder="Dist (1-10)" min="1" max="10" class="compact-input distance-input" title="Distancia de residencia (1 = Cerca, 10 = Muy Lejos)">
-                            <button onclick="addEmployee()" class="compact-btn btn-add">+</button>
-                        </div>
-                        <ul class="list-group" id="employeeList"></ul>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>☁️ Sincronización a la Nube</h3>
-                        <p class="card-desc-small">Los datos ahora se guardan automáticamente en Firebase. Puedes respaldar de forma manual si lo deseas.</p>
-                        <button onclick="downloadData()" class="btn-data btn-download">⬇️ Descargar Respaldo JSON</button>
-                        <input type="file" id="backupInput" class="hidden-input" onchange="loadBackup(this)">
-                        <button onclick="document.getElementById('backupInput').click()" class="btn-data btn-upload">📂 Cargar Respaldo y Subir a la Nube</button>
-                        <button onclick="inspectData()" class="btn-data btn-inspect">🔍 Ver qué hay en la Nube</button>
-                        <button onclick="openBaseModal()" class="btn-data btn-base">💰 Acumulados Previos (2025)</button>
-                        <button onclick="resetData()" class="btn-data btn-reset">⚠️ Borrar y Resetear Todo</button>
-                    </div>
-
-                    <div class="card">
-                        <h3>📍 Sitios</h3>
-                        <div class="input-group">
-                            <input type="text" id="newSiteName" placeholder="Nuevo sitio" class="compact-input flex-1">
-                            <button onclick="addSite()" class="compact-btn btn-add">+</button>
-                        </div>
-                        <ul class="list-group" id="siteList"></ul>
-                    </div>
-
-                    <div class="card">
-                        <h3>⚓ Actividades</h3>
-                        <div class="input-group">
-                            <input type="text" id="newActivityName" placeholder="Nueva actividad" class="compact-input flex-1">
-                            <button onclick="addActivity()" class="compact-btn btn-add">+</button>
-                        </div>
-                        <ul class="list-group" id="activityList"></ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="tab-nomina" class="view-section">
-            <div class="toolbar">
-                <div class="toolbar-group">
-                    <label><strong>Periodo:</strong></label>
-                    <select id="monthSelector" class="compact-input period-selector" onchange="syncMonths(this.value)"></select>
-                </div>
-
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchPayroll" class="search-input" placeholder="Buscar empleado..." onkeyup="renderTable(document.getElementById('monthSelector').value)">
-                </div>
-
-                <div class="toolbar-group">
-                    <div id="monthlyTotalDisplay"><span>Total: <strong id="monthTotal" class="total-highlight">0</strong></span></div>
-                    <button class="compact-btn btn-excel" onclick="exportToExcel()">📊 Exportar Excel</button>
-                    <button class="compact-btn btn-print" onclick="printPayroll()">🖨️ Imprimir</button>
-                </div>
+        <nav class="navbar">
+            <div class="brand-container">
+                <img src="logo.png" alt="Logo ICG" class="logo-img">
+                <div class="brand">ICG GESTOR V1.0</div>
             </div>
             
-            <div class="table-wrapper">
-                <table id="payrollTable"><thead><tr id="tableHeader"></tr></thead><tbody id="tableBody"></tbody></table>
-                <div id="dec2025Container" class="dec-container">
-                    <h3 class="dec-title">Cierre Fiscal Diciembre 2025</h3>
-                    <table class="dec-table">
-                        <thead>
-                            <tr class="dec-table-header">
-                                <th class="dec-th">Empleado</th>
-                                <th class="dec-th text-right">Total Mes (Dic 25)</th>
-                                <th class="dec-th text-right">Acumulado Anual Total (2025)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dec2025Body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+            <button class="nav-btn active" onclick="switchTab('config')">
+                ⚙️ Configuración
+                <div id="unsavedDot" class="unsaved-dot"></div>
+            </button>
+            <button class="nav-btn" id="nav-nomina" onclick="switchTab('nomina')">📅 Nómina</button>
+            <button class="nav-btn" id="nav-registro" onclick="switchTab('registro')">📝 Reg. Rápido</button>
+            <button class="nav-btn" id="nav-sugerencias" onclick="switchTab('sugerencias')">💡 Sugerencias</button>
+            <button class="nav-btn" id="nav-graficos" onclick="switchTab('graficos')">📈 Gráficos</button>
+            <button class="nav-btn" id="nav-analytics" onclick="switchTab('analytics')">📊 Gerencia</button>
+            <button class="nav-btn" onclick="logoutUser()" style="color: #fca5a5; margin-left: auto;">🚪 Salir</button>
+        </nav>
 
-        <section id="tab-sugerencias" class="view-section">
-            <div class="toolbar space-between">
-                <div class="toolbar-group">
-                    <label><strong>Periodo:</strong></label>
-                    <select id="monthSelectorSug" class="compact-input period-selector" onchange="syncMonths(this.value)"></select>
-                </div>
-                <button class="compact-btn btn-print" onclick="printSuggestions()">🖨️ Imprimir Reporte</button>
-            </div>
-            <div class="dashboard-container">
-                <h2 class="section-title">💡 Asignación de Guardias</h2>
-                <div class="legend-info">
-                    <span class="legend-dot dot-busy"></span> Empleados "En Guardia" (amarillo) son bajados de prioridad.<br>
-                    <span class="legend-dot dot-vacation"></span> Empleados en Vacaciones/Reposo no se muestran.<br>
-                    <strong>📊 Lógica de orden actual:</strong> Ventana Bimestral (Prioridad al que sume menos entre el Mes Actual y el Mes Anterior. Desempate: Anual).
-                </div>
-                <div class="dashboard-grid" id="suggestionGrid"></div>
-            </div>
-        </section>
+        <div class="content-area">
 
-        <section id="tab-registro" class="view-section">
-            <div class="dashboard-container">
-                <h2 class="section-title">📝 Registro Rápido de Operaciones</h2>
-                <p class="section-desc">Carga masiva de datos. La información se reflejará automáticamente en la Nómina.</p>
+            <section id="tab-config" class="view-section active">
+                <div class="config-container">
+                    <div class="config-grid">
+                        <div class="card card-span-2">
+                            <h3>👥 Personal, Cargo y Estatus</h3>
+                            <p class="card-desc">Gestiona aquí los ascensos de cargo y el estatus.</p>
+                            
+                            <button onclick="setAllAvailable()" class="btn-liberar">♻️ Poner TODOS en Disponible</button>
+                            
+                            <div class="input-group">
+                                <input type="text" id="newEmpName" placeholder="Nombre" class="compact-input flex-1">
+                                <select id="newEmpRole" class="compact-input">
+                                    <option value="Supervisor">Supervisor</option>
+                                    <option value="Tecnico de Seguridad">Técnico</option>
+                                    <option value="Inspector">Inspector</option>
+                                </select>
+                                <input type="number" id="newEmpDistance" placeholder="Dist (1-10)" min="1" max="10" class="compact-input distance-input" title="Distancia de residencia (1 = Cerca, 10 = Muy Lejos)">
+                                <button onclick="addEmployee()" class="compact-btn btn-add">+</button>
+                            </div>
+                            <ul class="list-group" id="employeeList"></ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>☁️ Sincronización a la Nube</h3>
+                            <p class="card-desc-small">Los datos ahora se guardan automáticamente en Firebase. Puedes respaldar de forma manual si lo deseas.</p>
+                            <button onclick="downloadData()" class="btn-data btn-download">⬇️ Descargar Respaldo JSON</button>
+                            <input type="file" id="backupInput" class="hidden-input" onchange="loadBackup(this)">
+                            <button onclick="document.getElementById('backupInput').click()" class="btn-data btn-upload">📂 Cargar Respaldo y Subir a la Nube</button>
+                            <button onclick="inspectData()" class="btn-data btn-inspect">🔍 Ver qué hay en la Nube</button>
+                            <button onclick="openBaseModal()" class="btn-data btn-base">💰 Acumulados Previos (2025)</button>
+                            <button onclick="resetData()" class="btn-data btn-reset">⚠️ Borrar y Resetear Todo</button>
+                        </div>
 
-                <div class="config-grid">
-                    <div class="card">
-                        <h3 style="color:var(--accent);">1. Datos de la Operación</h3>
-                        
-                        <div class="form-group mt-20">
-                            <label class="form-label">Periodo de Nómina</label>
-                            <select id="qrPeriod" class="form-control period-selector"></select>
-                        </div>
-                        
-                        <div class="form-row-split mt-20">
-                            <div class="form-group">
-                                <label class="form-label">Desde el día:</label>
-                                <input type="number" id="qrStartDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
+                        <div class="card">
+                            <h3>📍 Sitios</h3>
+                            <div class="input-group">
+                                <input type="text" id="newSiteName" placeholder="Nuevo sitio" class="compact-input flex-1">
+                                <button onclick="addSite()" class="compact-btn btn-add">+</button>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Hasta el día:</label>
-                                <input type="number" id="qrEndDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
-                            </div>
+                            <ul class="list-group" id="siteList"></ul>
                         </div>
-                        
-                        <div class="form-group mt-20">
-                            <label class="form-label">Sitio / Lugar</label>
-                            <select id="qrSite" class="form-control" onchange="recalculateAllQuickRows()"></select>
-                        </div>
-                        
-                        <div class="form-row-split mt-20">
-                            <div class="form-group">
-                                <label class="form-label">Operación / Actividad</label>
-                                <select id="qrActivity" class="form-control" onchange="checkQrOther('Activity'); recalculateAllQuickRows()"></select>
-                                <input id="qrActivityOther" class="other-input form-control" placeholder="Especifique..." onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
+
+                        <div class="card">
+                            <h3>⚓ Actividades</h3>
+                            <div class="input-group">
+                                <input type="text" id="newActivityName" placeholder="Nueva actividad" class="compact-input flex-1">
+                                <button onclick="addActivity()" class="compact-btn btn-add">+</button>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Toneladas Cargadas</label>
-                                <input type="number" id="qrTons" class="form-control" placeholder="Ej: 7500" min="0" onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mt-20">
-                            <label class="form-label">Embarcación / Notas (Opcional)</label>
-                            <input type="text" id="qrObs" class="form-control" placeholder="Ej: COPAL EMI 1150">
+                            <ul class="list-group" id="activityList"></ul>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="card card-span-2">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 style="color:var(--accent);">2. Personal Asignado</h3>
-                            <button class="compact-btn btn-add" onclick="addQuickRow()">+ Agregar Persona</button>
-                        </div>
-                        
-                        <div id="quickEntryList" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
-                            </div>
+            <section id="tab-nomina" class="view-section">
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <label><strong>Periodo:</strong></label>
+                        <select id="monthSelector" class="compact-input period-selector" onchange="syncMonths(this.value)"></select>
+                    </div>
 
-                        <button class="btn-save" style="margin-top:30px; font-size:1.1rem; padding:12px; background:#10b981;" onclick="saveQuickOperation()">💾 GUARDAR EN NÓMINA</button>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchPayroll" class="search-input" placeholder="Buscar empleado..." onkeyup="renderTable(document.getElementById('monthSelector').value)">
+                    </div>
+
+                    <div class="toolbar-group">
+                        <div id="monthlyTotalDisplay"><span>Total: <strong id="monthTotal" class="total-highlight">0</strong></span></div>
+                        <button class="compact-btn btn-excel" onclick="exportToExcel()">📊 Exportar Excel</button>
+                        <button class="compact-btn btn-print" onclick="printPayroll()">🖨️ Imprimir</button>
                     </div>
                 </div>
-            </div>
-        </section>
+                
+                <div class="table-wrapper">
+                    <table id="payrollTable"><thead><tr id="tableHeader"></tr></thead><tbody id="tableBody"></tbody></table>
+                    <div id="dec2025Container" class="dec-container">
+                        <h3 class="dec-title">Cierre Fiscal Diciembre 2025</h3>
+                        <table class="dec-table">
+                            <thead>
+                                <tr class="dec-table-header">
+                                    <th class="dec-th">Empleado</th>
+                                    <th class="dec-th text-right">Total Mes (Dic 25)</th>
+                                    <th class="dec-th text-right">Acumulado Anual Total (2025)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dec2025Body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
-        <section id="tab-graficos" class="view-section">
-            <div class="dashboard-container">
-                <h2 class="section-title">📈 Rendimiento Financiero</h2>
-                <p class="section-desc">Haz clic en los nombres de la leyenda para ocultar/mostrar empleados y comparar.</p>
-                <div class="dash-card">
-                    <h3>Supervisores</h3>
-                    <div id="legend-Supervisor" class="legend"></div>
-                    <div id="chart-Supervisor" class="chart-container"></div>
+            <section id="tab-sugerencias" class="view-section">
+                <div class="toolbar space-between">
+                    <div class="toolbar-group">
+                        <label><strong>Periodo:</strong></label>
+                        <select id="monthSelectorSug" class="compact-input period-selector" onchange="syncMonths(this.value)"></select>
+                    </div>
+                    <button class="compact-btn btn-print" onclick="printSuggestions()">🖨️ Imprimir Reporte</button>
                 </div>
-                <div class="dash-card mt-20">
-                    <h3>Técnicos de Seguridad</h3>
-                    <div id="legend-Tecnico" class="legend"></div>
-                    <div id="chart-Tecnico" class="chart-container"></div>
+                <div class="dashboard-container">
+                    <h2 class="section-title">💡 Asignación de Guardias</h2>
+                    <div class="legend-info">
+                        <span class="legend-dot dot-busy"></span> Empleados "En Guardia" (amarillo) son bajados de prioridad.<br>
+                        <span class="legend-dot dot-vacation"></span> Empleados en Vacaciones/Reposo no se muestran.<br>
+                        <strong>📊 Lógica de orden actual:</strong> Ventana Bimestral (Prioridad al que sume menos entre el Mes Actual y el Mes Anterior. Desempate: Anual).
+                    </div>
+                    <div class="dashboard-grid" id="suggestionGrid"></div>
                 </div>
-                <div class="dash-card mt-20">
-                    <h3>Inspectores</h3>
-                    <div id="legend-Inspector" class="legend"></div>
-                    <div id="chart-Inspector" class="chart-container"></div>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="tab-analytics" class="view-section">
-            <div class="dashboard-container">
-                <h2 class="section-title">📊 Reporte Gerencial Detallado</h2>
-                <div class="year-split-container" id="analyticsContainer"></div>
-                <div id="monthlyAnalyticsContainer" class="monthly-analytics-container"></div>
-                <div class="dash-card mb-20">
-                    <h3>📅 Evolución del Gasto Global (Mes a Mes)</h3>
-                    <div id="legend-GlobalMonthly" class="legend"></div>
-                    <div id="chart-GlobalMonthly" class="chart-container h-300"></div>
-                </div>
-                <div class="dash-card mb-20">
-                    <h3>👥 Gastos por Puesto de Trabajo (Mes a Mes)</h3>
-                    <div id="legend-RoleMonthly" class="legend"></div>
-                    <div id="chart-RoleMonthly" class="chart-container h-300"></div>
-                </div>
-                <div class="analytics-card mt-20">
-                    <h3 class="card-title-no-margin">📍 Ingresos por Sitio (Global)</h3>
-                    <div id="sitesChart"></div>
-                </div>
-            </div>
-        </section>
+            <section id="tab-registro" class="view-section">
+                <div class="dashboard-container">
+                    <h2 class="section-title">📝 Registro Rápido de Operaciones</h2>
+                    <p class="section-desc">Carga masiva de datos. La información se reflejará automáticamente en la Nómina.</p>
 
-    </div>
+                    <div class="config-grid">
+                        <div class="card">
+                            <h3 style="color:var(--accent);">1. Datos de la Operación</h3>
+                            
+                            <div class="form-group mt-20">
+                                <label class="form-label">Periodo de Nómina</label>
+                                <select id="qrPeriod" class="form-control period-selector"></select>
+                            </div>
+                            
+                            <div class="form-row-split mt-20">
+                                <div class="form-group">
+                                    <label class="form-label">Desde el día:</label>
+                                    <input type="number" id="qrStartDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Hasta el día:</label>
+                                    <input type="number" id="qrEndDay" class="form-control" min="1" max="31" placeholder="Ej: 26">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-20">
+                                <label class="form-label">Sitio / Lugar</label>
+                                <select id="qrSite" class="form-control" onchange="recalculateAllQuickRows()"></select>
+                            </div>
+                            
+                            <div class="form-row-split mt-20">
+                                <div class="form-group">
+                                    <label class="form-label">Operación / Actividad</label>
+                                    <select id="qrActivity" class="form-control" onchange="checkQrOther('Activity'); recalculateAllQuickRows()"></select>
+                                    <input id="qrActivityOther" class="other-input form-control" placeholder="Especifique..." onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Toneladas Cargadas</label>
+                                    <input type="number" id="qrTons" class="form-control" placeholder="Ej: 7500" min="0" onkeyup="recalculateAllQuickRows()" onchange="recalculateAllQuickRows()">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-20">
+                                <label class="form-label">Embarcación / Notas (Opcional)</label>
+                                <input type="text" id="qrObs" class="form-control" placeholder="Ej: COPAL EMI 1150">
+                            </div>
+                        </div>
 
-    <div class="modal-overlay" id="cellEditorModal">
-        <div class="editor-box">
-            <h4 class="modal-header-title" id="modalTitle">Registro</h4>
-            
-            <div class="modal-action-group">
-                <button class="compact-btn btn-modal-action" onclick="copyRecord()">📋 Copiar</button>
-                <button class="compact-btn btn-modal-action" onclick="pasteRecord()">📥 Pegar</button>
-                <button class="compact-btn btn-modal-delete" onclick="deleteRecord()">🗑️ Borrar</button>
-            </div>
+                        <div class="card card-span-2">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <h3 style="color:var(--accent);">2. Personal Asignado</h3>
+                                <button class="compact-btn btn-add" onclick="addQuickRow()">+ Agregar Persona</button>
+                            </div>
+                            
+                            <div id="quickEntryList" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+                                </div>
 
-            <div class="form-row-split">
-                <div class="form-group"><label class="form-label">Desde día:</label><input type="number" id="editorStartDay" class="form-control input-readonly" readonly></div>
-                <div class="form-group"><label class="form-label">Hasta día:</label><input type="number" id="editorEndDay" class="form-control" min="1" max="31"></div>
-            </div>
-            <div class="form-row-split">
-                <div class="form-group"><label class="form-label">Ingreso TOTAL ($)</label><input type="number" id="editorAmount" class="form-control" placeholder="Monto Global del Rango"></div>
-                <div class="form-group"><label class="form-label">Turno</label><select id="editorShift" class="form-control"><option value="Diurno">☀️ Diurno</option><option value="Nocturno">🌙 Nocturno</option><option value="Mixto">⚖️ Mixto/NA</option></select></div>
-            </div>
-            <div class="form-group"><label class="form-label">Cargo Ejercido</label><select id="editorRole" class="form-control"><option>Supervisor</option><option>Tecnico de Seguridad</option><option>Inspector</option></select></div>
-            <div class="form-group"><label class="form-label">Sitio</label><select id="editorSite" class="form-control" onchange="checkOther('Site')"></select><input id="editorSiteOther" class="other-input form-control" placeholder="Especifique..."></div>
-            <div class="form-group"><label class="form-label">Actividad</label><select id="editorActivity" class="form-control" onchange="checkOther('Activity')"></select><input id="editorActivityOther" class="other-input form-control" placeholder="Especifique..."></div>
-            <div class="form-group"><label class="form-label">Observación / Incidencia</label><textarea id="editorObs" class="form-control" rows="2" placeholder="Ej: Lluvia 2h, Transporte demorado..."></textarea></div>
-            
-            <button class="btn-save" onclick="saveEditor()">GUARDAR CAMBIOS</button>
-            <button class="btn-cancel" onclick="closeEditor()">Cancelar</button>
+                            <button class="btn-save" style="margin-top:30px; font-size:1.1rem; padding:12px; background:#10b981;" onclick="saveQuickOperation()">💾 GUARDAR EN NÓMINA</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-graficos" class="view-section">
+                <div class="dashboard-container">
+                    <h2 class="section-title">📈 Rendimiento Financiero</h2>
+                    <p class="section-desc">Haz clic en los nombres de la leyenda para ocultar/mostrar empleados y comparar.</p>
+                    <div class="dash-card">
+                        <h3>Supervisores</h3>
+                        <div id="legend-Supervisor" class="legend"></div>
+                        <div id="chart-Supervisor" class="chart-container"></div>
+                    </div>
+                    <div class="dash-card mt-20">
+                        <h3>Técnicos de Seguridad</h3>
+                        <div id="legend-Tecnico" class="legend"></div>
+                        <div id="chart-Tecnico" class="chart-container"></div>
+                    </div>
+                    <div class="dash-card mt-20">
+                        <h3>Inspectores</h3>
+                        <div id="legend-Inspector" class="legend"></div>
+                        <div id="chart-Inspector" class="chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-analytics" class="view-section">
+                <div class="dashboard-container">
+                    <h2 class="section-title">📊 Reporte Gerencial Detallado</h2>
+                    <div class="year-split-container" id="analyticsContainer"></div>
+                    <div id="monthlyAnalyticsContainer" class="monthly-analytics-container"></div>
+                    <div class="dash-card mb-20">
+                        <h3>📅 Evolución del Gasto Global (Mes a Mes)</h3>
+                        <div id="legend-GlobalMonthly" class="legend"></div>
+                        <div id="chart-GlobalMonthly" class="chart-container h-300"></div>
+                    </div>
+                    <div class="dash-card mb-20">
+                        <h3>👥 Gastos por Puesto de Trabajo (Mes a Mes)</h3>
+                        <div id="legend-RoleMonthly" class="legend"></div>
+                        <div id="chart-RoleMonthly" class="chart-container h-300"></div>
+                    </div>
+                    <div class="analytics-card mt-20">
+                        <h3 class="card-title-no-margin">📍 Ingresos por Sitio (Global)</h3>
+                        <div id="sitesChart"></div>
+                    </div>
+                </div>
+            </section>
+
         </div>
-    </div>
 
-    <div class="modal-overlay" id="baseModal">
-        <div class="editor-box modal-lg">
-            <h4 class="modal-header-title-simple">💰 Acumulados Previos (Ene-Nov 2025)</h4>
-            <div id="baseList" class="base-list-grid"></div>
-            <button class="btn-save" onclick="saveBases()">GUARDAR CAMBIOS</button>
-            <button class="btn-close-modal" onclick="document.getElementById('baseModal').classList.remove('open')">Cerrar</button>
+        <div class="modal-overlay" id="cellEditorModal">
+            <div class="editor-box">
+                <h4 class="modal-header-title" id="modalTitle">Registro</h4>
+                
+                <div class="modal-action-group">
+                    <button class="compact-btn btn-modal-action" onclick="copyRecord()">📋 Copiar</button>
+                    <button class="compact-btn btn-modal-action" onclick="pasteRecord()">📥 Pegar</button>
+                    <button class="compact-btn btn-modal-delete" onclick="deleteRecord()">🗑️ Borrar</button>
+                </div>
+
+                <div class="form-row-split">
+                    <div class="form-group"><label class="form-label">Desde día:</label><input type="number" id="editorStartDay" class="form-control input-readonly" readonly></div>
+                    <div class="form-group"><label class="form-label">Hasta día:</label><input type="number" id="editorEndDay" class="form-control" min="1" max="31"></div>
+                </div>
+                <div class="form-row-split">
+                    <div class="form-group"><label class="form-label">Ingreso TOTAL ($)</label><input type="number" id="editorAmount" class="form-control" placeholder="Monto Global del Rango"></div>
+                    <div class="form-group"><label class="form-label">Turno</label><select id="editorShift" class="form-control"><option value="Diurno">☀️ Diurno</option><option value="Nocturno">🌙 Nocturno</option><option value="Mixto">⚖️ Mixto/NA</option></select></div>
+                </div>
+                <div class="form-group"><label class="form-label">Cargo Ejercido</label><select id="editorRole" class="form-control"><option>Supervisor</option><option>Tecnico de Seguridad</option><option>Inspector</option></select></div>
+                <div class="form-group"><label class="form-label">Sitio</label><select id="editorSite" class="form-control" onchange="checkOther('Site')"></select><input id="editorSiteOther" class="other-input form-control" placeholder="Especifique..."></div>
+                <div class="form-group"><label class="form-label">Actividad</label><select id="editorActivity" class="form-control" onchange="checkOther('Activity')"></select><input id="editorActivityOther" class="other-input form-control" placeholder="Especifique..."></div>
+                <div class="form-group"><label class="form-label">Observación / Incidencia</label><textarea id="editorObs" class="form-control" rows="2" placeholder="Ej: Lluvia 2h, Transporte demorado..."></textarea></div>
+                
+                <button class="btn-save" onclick="saveEditor()">GUARDAR CAMBIOS</button>
+                <button class="btn-cancel" onclick="closeEditor()">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="baseModal">
+            <div class="editor-box modal-lg">
+                <h4 class="modal-header-title-simple">💰 Acumulados Previos (Ene-Nov 2025)</h4>
+                <div id="baseList" class="base-list-grid"></div>
+                <button class="btn-save" onclick="saveBases()">GUARDAR CAMBIOS</button>
+                <button class="btn-close-modal" onclick="document.getElementById('baseModal').classList.remove('open')">Cerrar</button>
+            </div>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
     <script src="script.js"></script>
 
