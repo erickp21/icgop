@@ -48,14 +48,14 @@ const DEFAULT_EMPLOYEES = [
 
 const USER_ROLES = {
     // 3
-    "jose.solano@icglobal.com.ve": "J0s350lan0#",
-    "erick.patino@icglobal.com.ve": "1m3r1ck#Ep!",
-    "gilbert.gomez@icglobal.com.ve": "1mG0m3z#Gg!",
+    "jose.solano@icglobal.com.ve": "adminglobal",
+    "erick.patino@icglobal.com.ve": "adminglobal",
+    "gilbert.gomez@icglobal.com.ve": "adminglobal",
     // 2
-    "rrhh@icglobal.com.ve": "Hum@nR3s0urc3s",
-    "administracion@icglobal.com.ve": "Adm1n1str@c10n",
+    "rrhh@icglobal.com.ve": "rrhh",
+    "administracion@icglobal.com.ve": "rrhh",
     // 1 
-    "asistentepzo@icglobal.com.ve": "J0sm3l1a#"
+    "asistentepzo@icglobal.com.ve": "asistente"
 };
 
 let appData = { employees: [...DEFAULT_EMPLOYEES], sites: [...DEFAULT_SITES], activities: [...DEFAULT_ACTIVITIES], records: {}, historical2025: {} };
@@ -1060,7 +1060,8 @@ function loginUser(e) {
         .then(() => { btn.innerText = "Ingresar"; })
         .catch(error => {
             btn.innerText = "Ingresar";
-            err.innerText = "Credenciales inválidas o usuario no existe.";
+            // AHORA FIREBASE TE DIRÁ EXACTAMENTE CUÁL ES EL ERROR
+            err.innerText = "Error: " + error.message; 
             err.style.display = "block";
         });
 }
@@ -1073,7 +1074,7 @@ function logoutUser() {
 }
 
 function applyRoles(email) {
-    const role = USER_ROLES[email] || "invitado";
+    const role = USER_ROLES[email.toLowerCase()] || "invitado";
     
     // Mostramos todo por defecto primero
     document.querySelectorAll('.nav-btn').forEach(btn => btn.style.display = 'inline-block');
