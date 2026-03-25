@@ -197,7 +197,12 @@ function setDirty(val) { isDirty = val; const dot = document.getElementById('uns
 function switchTab(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-    event.target.classList.add('active'); document.getElementById('tab-' + tab).classList.add('active');
+    
+    // NUEVO: Buscamos el botón por su ID de forma segura en lugar de depender del "clic"
+    const btn = document.getElementById('nav-' + tab);
+    if(btn) btn.classList.add('active'); 
+    
+    document.getElementById('tab-' + tab).classList.add('active');
     
     if(tab === 'nomina') handleMonthChange();
     if(tab === 'sugerencias') renderSuggestions();
