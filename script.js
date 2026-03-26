@@ -1042,7 +1042,7 @@ auth.onAuthStateChanged(user => {
     if (user) {
         // Usuario logueado
         document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'flex';
         applyRoles(user.email);
         init(); // Cargamos los datos de la nube
     } else {
