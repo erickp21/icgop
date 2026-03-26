@@ -29,7 +29,7 @@ body {
 }
 
 /* --- IMPRESIÓN --- */
-#printSection, #printSuggestionsSection { display: none; }
+#printSection, #printSuggestionsSection, #printQuickEntrySection { display: none; }
 
 @media print {
     .navbar, .content-area, .modal-overlay, #globalTooltip, #toastNotif { display: none !important; }
@@ -50,6 +50,11 @@ body {
     .badge-print { font-size: 8pt; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; }
     
     .print-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 20px; }
+
+    body.printing-quick-entry #printQuickEntrySection { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+    .qe-header { font-size: 16pt; font-weight: bold; margin-bottom: 5px; border-bottom: 2px solid var(--accent); color: var(--primary); padding-bottom: 5px; }
+    .qe-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 11pt; }
+    .qe-info-item { border: 1px solid #e2e8f0; padding: 8px; border-radius: 4px; background: #f8fafc; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* --- ESTILOS --- */

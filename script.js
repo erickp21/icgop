@@ -1035,6 +1035,71 @@ function saveQuickOperation() {
     showToast("✅ ¡Operación guardada en la nómina!");
 }
 
+function printQuickEntry() {
+    const p = document.getElementById('qrPeriod').value;
+    const startD = document.getElementById('qrStartDay').value || '-';
+    const endD = document.getElementById('qrEndDay').value || '-';
+    const site = document.getElementById('qrSite').value;
+    const act = getSelectVal('qrActivity');
+    const obs = document.getElementById('qrObs').value.toUpperCase() || 'Ninguna';
+    const tons = document.getElementById('qrTons').value || '0';
+
+    if(quickRows.length === 0) { alert("⚠️ Debes agregar al menos a una persona a la lista."); return; }
+    let validEmps = true; quickRows.forEach(r => { if(!r.empId) validEmps = false; });
+    if(!validEmps) { alert("⚠️ Hay filas sin empleado seleccionado. Verifica la lista."); return; }
+
+    const printArea = document.getElementById('printQuickEntrySection');
+    
+    let html = `<div class="qe-header">REPORTE DE OPERACIÓN - REGISTRO RÁPIDO</div>`;
+    html += `<div style="font-size:10pt; color: #64748b; margin-bottom: 15px;">Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>`;
+
+    html += `<div class="qe-info-grid">
+                <div class="qe-info-item"><b>Periodo:</b> ${p}</div>
+                <div class="qe-info-item"><b>Fechas:</b> Del ${startD} al ${endD}</div>
+                <div class="qe-info-item"><b>Sitio:</b> ${site}</div>
+                <div class="qe-info-item"><b>Actividad:</b> ${act}</div>
+                <div class="qe-info-item"><b>Toneladas:</b> ${tons} TM</div>
+                <div class="qe-info-item"><b>Embarcación / Notas:</b> ${obs}</div>
+             </div>`;
+
+    html += `<h3 style="margin-bottom:5px; border-bottom:1px solid #ccc;">Personal Asignado</h3>`;
+    html += `<table class="sug-print-table">
+                <thead><tr style="background:#f1f5f9;">
+                    <th>Empleado</th>
+                    <th>Cargo</th>
+                    <th>Turno</th>
+                    <th style="text-align:right;">Monto ($)</th>
+                </tr></thead><tbody>`;
+
+    let totalAmount = 0;
+    quickRows.forEach(row => {
+        const emp = appData.employees.find(e => e.id == row.empId);
+        const name = emp ? emp.name : 'Desconocido';
+        const amount = parseFloat(row.amount) || 0;
+        totalAmount += amount;
+        
+        html += `<tr>
+                    <td><b>${name}</b></td>
+                    <td>${row.role}</td>
+                    <td>${row.shift}</td>
+                    <td style="text-align:right;">$${amount}</td>
+                </tr>`;
+    });
+
+    html += `<tr style="font-weight:bold; background:#f8fafc;">
+                <td colspan="3" style="text-align:right;">TOTAL OPERACIÓN:</td>
+                <td style="text-align:right; color:var(--accent);">$${totalAmount}</td>
+            </tr>`;
+    
+    html += `</tbody></table>`;
+    
+    printArea.innerHTML = html;
+    
+    document.body.classList.add('printing-quick-entry');
+    window.print();
+    document.body.classList.remove('printing-quick-entry');
+}
+
 /* --- LÓGICA DE SEGURIDAD Y LOGIN --- */
 
 // Escuchador de estado de sesión
