@@ -427,23 +427,34 @@ function renderSuggestions() {
         });
         
         ranking.sort((a,b) => {
-            // Regla original 1: Ocupados van al fondo
+            // Regla 1: Ocupados van al fondo (Intacta)
             if (a.status === "En Guardia" && b.status !== "En Guardia") return 1;
             if (a.status !== "En Guardia" && b.status === "En Guardia") return -1;
 
-            // NUEVA REGLA DE TRANSPORTE: Penalizar lejanías múltiples
-            if (isHighDistanceEnGuardia) {
+            // PRE-CÁLCULO: Extraemos el dinero acumulado de ambos candidatos
+            const bimestralA = a.cur + a.prev;
+            const bimestralB = b.cur + b.prev;
+            
+            // NUEVO: Calculamos la brecha financiera absoluta en dólares
+            const brechaFinanciera = Math.abs(bimestralA - bimestralB);
+            const LIMITE_BRECHA = 150; // El umbral definido por gerencia
+
+            // Regla 2: Transporte condicionado a la Brecha Financiera
+            // La penalización por distancia AHORA exige que la brecha sea <= 150
+            if (isHighDistanceEnGuardia && brechaFinanciera <= LIMITE_BRECHA) {
                 const aIsHigh = a.distance >= 8;
                 const bIsHigh = b.distance >= 8;
                 
-                if (aIsHigh && !bIsHigh) return 1;  // Baja 'a' en la prioridad
-                if (!aIsHigh && bIsHigh) return -1; // Baja 'b' en la prioridad
+                if (aIsHigh && !bIsHigh) return 1;  // 'a' vive lejos, lo bajamos
+                if (!aIsHigh && bIsHigh) return -1; // 'b' vive lejos, lo bajamos
             }
 
-            // Regla original 2: Filtro financiero intacto
-            const bimestralA = a.cur + a.prev;
-            const bimestralB = b.cur + b.prev;
+            // Regla 3: Ordenamiento financiero (Equidad salarial)
+            // Si la brecha era mayor a 150, la Regla 2 fue ignorada (Bypass)
+            // y el algoritmo pasa directamente a priorizar al que menos dinero tiene.
             if (bimestralA !== bimestralB) return bimestralA - bimestralB;
+            
+            // Desempate por acumulado anual
             return a.ann - b.ann;
         });
 
