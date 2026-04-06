@@ -255,29 +255,50 @@ function renderTable(period) {
     appData.employees.forEach(emp => {
         if(filter && !emp.name.includes(filter)) return;
         if(!appData.records[period][emp.id]) appData.records[period][emp.id] = Array(DAYS_IN_MONTH).fill(null);
-        let mTotal = 0; let cells = '';
+        let mTotal = 0; 
+        let cells = '';
         for(let i=0; i < DAYS_IN_MONTH; i++) {
             const rec = appData.records[period][emp.id][i];
             if (rec && rec.span > 1) {
-                const shiftIcon = rec.shift==='Diurno'?'☀️':(rec.shift==='Nocturno'?'🌙':'');
+                let phantomClass = rec.isPhantom ? 'phantom-cell' : '';
+                let shiftIcon = rec.isPhantom ? '🚫' : (rec.shift==='Diurno'?'☀️':(rec.shift==='Nocturno'?'🌙':''));
                 const obsText = rec.obs ? `\n📝 NOTA: ${rec.obs}` : '';
                 const amtNum = parseFloat(rec.amount) || 0;
                 const tooltip = `💵 $${amtNum}\n📍 ${rec.site}\n⚓ ${rec.activity}\n🕒 ${rec.shift}\n📅 Días: ${rec.span}${obsText}`;
-                cells += `<td colspan="${rec.span}" class="data-cell merged-cell" data-tooltip="${tooltip}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${rec.obs?'<div class="obs-dot"></div>':''}<div style="font-size:0.8rem;">$${amtNum}</div><div style="font-size:0.6rem; overflow:hidden; white-space:nowrap; padding:0 2px;">${shiftIcon} ${rec.activity}</div></td>`;
-                mTotal += amtNum; i += (rec.span - 1);
-            } else if (rec && rec.linked) { cells += `<td class="data-cell" style="background:#f1f5f9;">-</td>`; }
-            else {
-                const amt = rec ? (parseFloat(rec.amount) || 0) : 0; mTotal += amt; let shiftIcon = '';
-                if(rec && rec.shift === 'Diurno') shiftIcon = '<span class="shift-day" style="font-size:0.6rem;">☀</span>';
-                if(rec && rec.shift === 'Nocturno') shiftIcon = '<span class="shift-night" style="font-size:0.6rem;">☾</span>';
-                cells += `<td class="data-cell day-col ${amt>0?'has-data':''}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${(rec&&rec.obs)?'<div class="obs-dot"></div>':''}${amt>0?amt:''}${shiftIcon}</td>`;
+                
+                cells += `<td colspan="${rec.span}" class="data-cell merged-cell ${phantomClass}" data-tooltip="${tooltip}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${rec.obs?'<div class="obs-dot"></div>':''}<div style="font-size:0.8rem;">$${amtNum}</div><div style="font-size:0.6rem; overflow:hidden; white-space:nowrap; padding:0 2px;">${shiftIcon} ${rec.activity}</div></td>`;
+                
+                if (!rec.isPhantom) {
+                    mTotal += amtNum;
+                } 
+                i += (rec.span - 1);
+            } else if (rec && rec.linked) { 
+                cells += `<td class="data-cell" style="background:#f1f5f9;">-</td>`; 
+            } else {
+                const amt = rec ? (parseFloat(rec.amount) || 0) : 0; 
+                if (!rec.isPhantom) {
+                    mTotal += amt;
+                }
+                
+                let phantomClass = (rec && rec.isPhantom) ? 'phantom-cell' : '';
+                let shiftIcon = '';
+                
+                if (rec && rec.isPhantom) {
+                    shiftIcon = '<span style="font-size:0.6rem;">🚫</span>';
+                } else if(rec && rec.shift === 'Diurno') {
+                    shiftIcon = '<span class="shift-day" style="font-size:0.6rem;">☀</span>';
+                } else if(rec && rec.shift === 'Nocturno') {
+                    shiftIcon = '<span class="shift-night" style="font-size:0.6rem;">☾</span>';
+                }
+                
+                cells += `<td class="data-cell day-col ${amt>0?'has-data':''} ${phantomClass}" onclick="selectCell(this)" ondblclick="openEditor(${emp.id}, ${i})">${(rec&&rec.obs)?'<div class="obs-dot"></div>':''}${amt>0?amt:''}${shiftIcon}</td>`;
             }
         }
         grandTotal += mTotal;
         let yTotal = 0;
         PERIODS.filter(p => p.includes(currentYear)).forEach(p => { 
             if(appData.records[p] && appData.records[p][emp.id]) { 
-                yTotal += appData.records[p][emp.id].reduce((sum, r) => sum + (r && (parseFloat(r.amount)>0) ? parseFloat(r.amount) : 0), 0); 
+                yTotal += appData.records[p][emp.id].reduce((sum, r) => sum + (r && !r.isPhantom && (parseFloat(r.amount)>0) ? parseFloat(r.amount) : 0), 0); 
             } 
         });
         
@@ -306,6 +327,7 @@ function openEditor(eid, dix) {
     document.getElementById('editorAmount').value = val;
     document.getElementById('editorShift').value = rec ? rec.shift : 'Diurno';
     document.getElementById('editorObs').value = rec ? (rec.obs || '') : '';
+    document.getElementById('editorPhantom').checked = rec ? (rec.isPhantom || false) : false;
     fillSelect('editorRole', ROLES, rec ? rec.role : emp.role);
     fillSelectOther('editorSite', appData.sites, rec ? rec.site : '');
     fillSelectOther('editorActivity', appData.activities, rec ? rec.activity : '');
@@ -321,7 +343,8 @@ function copyRecord() {
         siteOther: document.getElementById('editorSiteOther').value,
         activity: document.getElementById('editorActivity').value,
         activityOther: document.getElementById('editorActivityOther').value,
-        obs: document.getElementById('editorObs').value
+        obs: document.getElementById('editorObs').value,
+        isPhantom: document.getElementById('editorPhantom').checked
     };
     showToast("📋 ¡Copiado! Ahora abre otra casilla y dale Pegar.");
 }
@@ -347,6 +370,7 @@ function pasteRecord() {
     } else { document.getElementById('editorActivityOther').classList.remove('visible'); }
 
     document.getElementById('editorObs').value = copiedRecordData.obs;
+    document.getElementById('editorPhantom').checked = copiedRecordData.isPhantom || false;
     showToast("📥 Datos pegados. ¡Verifica el Turno y dale Guardar!");
 }
 
@@ -382,7 +406,7 @@ function saveEditor() {
     for(let d=startD; d<=endD; d++) { userRow[d-1] = null; } 
     
     if (amount > 0) {
-        const commonData = { role: document.getElementById('editorRole').value, site: getSelectVal('editorSite'), activity: getSelectVal('editorActivity'), shift: document.getElementById('editorShift').value, obs: document.getElementById('editorObs').value };
+        const commonData = { role: document.getElementById('editorRole').value, site: getSelectVal('editorSite'), activity: getSelectVal('editorActivity'), shift: document.getElementById('editorShift').value, obs: document.getElementById('editorObs').value, isPhantom: document.getElementById('editorPhantom').checked };
         userRow[startD-1] = { amount: amount, span: span, ...commonData };
         for(let k=1; k < span; k++) { userRow[startD-1+k] = { amount: 0, linked: true, span: 0, ...commonData }; }
     }
@@ -405,25 +429,55 @@ function renderSuggestions() {
         const activeGroup = group.filter(e => e.status !== "Vacaciones" && e.status !== "Reposo");
         
         const ranking = activeGroup.map(emp => {
-            let cur = 0;
-            if(p === "DICIEMBRE 2025") cur = (appData.historical2025[emp.id]?.month || 0);
-            else if(appData.records[p] && appData.records[p][emp.id]) cur = appData.records[p][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0);
-            
-            let prev = 0;
-            if(pIdx > 0) {
-                const prevP = PERIODS[pIdx-1];
-                if(prevP === "DICIEMBRE 2025") { prev = (appData.historical2025[emp.id]?.month || 0); } 
-                else { if(appData.records[prevP] && appData.records[prevP][emp.id]) { prev = appData.records[prevP][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0); } }
+            let curReal = 0, curRank = 0; // curReal para mostrar, curRank para ordenar
+            if(p === "DICIEMBRE 2025") {
+                curReal = curRank = (appData.historical2025[emp.id]?.month || 0);
+            } else if(appData.records[p] && appData.records[p][emp.id]) {
+                appData.records[p][emp.id].forEach(r => {
+                    if(r) {
+                        const val = parseFloat(r.amount) || 0;
+                        curRank += val; // El algoritmo de posicionamiento suma todo (real + fantasma)
+                        if(!r.isPhantom) curReal += val; // La vista de la tabla solo suma dinero real
+                    }
+                });
             }
             
-            let ann = 0;
-            if(p.includes("2025")) ann = (appData.historical2025[emp.id]?.year || 0);
-            else PERIODS.filter(x => x.includes(currentYear)).forEach(x => { 
-                if(appData.records[x]&&appData.records[x][emp.id]) ann += appData.records[x][emp.id].reduce((a,b)=>a+(b ? parseFloat(b.amount)||0 : 0), 0); 
-            });
+            let prevReal = 0, prevRank = 0;
+            if(pIdx > 0) {
+                const prevP = PERIODS[pIdx-1];
+                if(prevP === "DICIEMBRE 2025") { prevReal = prevRank = (appData.historical2025[emp.id]?.month || 0); } 
+                else if(appData.records[prevP] && appData.records[prevP][emp.id]) {
+                    appData.records[prevP][emp.id].forEach(r => {
+                        if(r) {
+                            const val = parseFloat(r.amount) || 0;
+                            prevRank += val; 
+                            if(!r.isPhantom) prevReal += val; 
+                        }
+                    });
+                }
+            }
             
-            // 2. Agregamos la extracción de la distancia (por defecto 5 si no existe)
-            return { name: emp.name, cur, prev, ann, lastOp: getLastOperationalShift(emp.id), status: emp.status, distance: emp.distanceScore || 5 };
+            let annReal = 0, annRank = 0;
+            if(p.includes("2025")) { annReal = annRank = (appData.historical2025[emp.id]?.year || 0); }
+            else {
+                PERIODS.filter(x => x.includes(currentYear)).forEach(x => { 
+                    if(appData.records[x]&&appData.records[x][emp.id]) {
+                        appData.records[x][emp.id].forEach(r => {
+                            if(r) {
+                                const val = parseFloat(r.amount) || 0;
+                                annRank += val;
+                                if(!r.isPhantom) annReal += val;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            return { 
+                name: emp.name, status: emp.status, distance: emp.distanceScore || 5, lastOp: getLastOperationalShift(emp.id),
+                cur: curReal, prev: prevReal, ann: annReal, // Para pintar en pantalla (Sin penalizaciones)
+                curRank, prevRank, annRank // Para el cerebro matemático (Con penalizaciones)
+            };
         });
         
         ranking.sort((a,b) => {
@@ -432,8 +486,8 @@ function renderSuggestions() {
             if (a.status !== "En Guardia" && b.status === "En Guardia") return -1;
 
             // PRE-CÁLCULO: Extraemos el dinero acumulado de ambos candidatos
-            const bimestralA = a.cur + a.prev;
-            const bimestralB = b.cur + b.prev;
+            const bimestralA = a.curRank + a.prevRank;
+            const bimestralB = b.curRank + b.prevRank;
             
             // NUEVO: Calculamos la brecha financiera absoluta en dólares
             const brechaFinanciera = Math.abs(bimestralA - bimestralB);
@@ -455,7 +509,7 @@ function renderSuggestions() {
             if (bimestralA !== bimestralB) return bimestralA - bimestralB;
             
             // Desempate por acumulado anual
-            return a.ann - b.ann;
+            return a.annRank - b.annRank;
         });
 
         const thresh = role === 'Inspector' ? 4 : 2;
