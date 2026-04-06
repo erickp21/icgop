@@ -303,7 +303,15 @@
                     <div class="form-group"><label class="form-label">Hasta día:</label><input type="number" id="editorEndDay" class="form-control" min="1" max="31"></div>
                 </div>
                 <div class="form-row-split">
-                    <div class="form-group"><label class="form-label">Ingreso TOTAL ($)</label><input type="number" id="editorAmount" class="form-control" placeholder="Monto Global del Rango"></div>
+                    <div class="form-group">
+                        <label class="form-label">Ingreso TOTAL ($)</label>
+                        <input type="number" id="editorAmount" class="form-control" placeholder="Monto Global del Rango">
+                        <div style="margin-top: 8px;">
+                            <label style="font-size: 0.75rem; color: #dc2626; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="editorPhantom"> 🚫 Ausencia no justificada
+                            </label>
+                        </div>
+                    </div>
                     <div class="form-group"><label class="form-label">Turno</label><select id="editorShift" class="form-control"><option value="Diurno">☀️ Diurno</option><option value="Nocturno">🌙 Nocturno</option><option value="Mixto">⚖️ Mixto/NA</option></select></div>
                 </div>
                 <div class="form-group"><label class="form-label">Cargo Ejercido</label><select id="editorRole" class="form-control"><option>Supervisor</option><option>Tecnico de Seguridad</option><option>Inspector</option></select></div>
