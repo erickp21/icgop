@@ -301,3 +301,10 @@ td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--borde
 .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
 .login-box { background: white; padding: 2.5rem; border-radius: 12px; width: 350px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
 .login-box .form-control { margin-bottom: 15px; padding: 0.8rem; }
+
+/* --- ESTILO PARA AUSENCIA NO JUSTIFICADA (FANTASMA) --- */
+.phantom-cell {
+    background-color: #fef2f2 !important; /* Fondo rojo clarito */
+    color: #ef4444 !important; /* Texto rojo intenso */
+    border: 1px dashed #ef4444 !important; /* Borde punteado para destacarlo */
+}
