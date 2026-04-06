@@ -276,7 +276,10 @@ function renderTable(period) {
                 cells += `<td class="data-cell" style="background:#f1f5f9;">-</td>`; 
             } else {
                 const amt = rec ? (parseFloat(rec.amount) || 0) : 0; 
-                if (!rec.isPhantom) {
+                
+                // ESCUDO ACTIVADO: Primero preguntamos si el día está vacío (!rec). 
+                // Si no está vacío, entonces sí le preguntamos si NO es fantasma (!rec.isPhantom).
+                if (!rec || !rec.isPhantom) {
                     mTotal += amt;
                 }
                 
