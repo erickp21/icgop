@@ -615,7 +615,7 @@ function renderAnalytics() {
             const emp = appData.employees.find(x => x.id == eId);
             if(!emp) return;
             appData.records[p][eId].forEach(r => {
-                if(r && (parseFloat(r.amount) > 0)) {
+                if(r && !r.isPhantom && (parseFloat(r.amount) > 0)) {
                     const amtNum = parseFloat(r.amount);
                     stats[year].total += amtNum;
                     let actualRole = r.role || emp.role;
@@ -665,7 +665,7 @@ function renderAnalyticsCharts() {
                 const emp = appData.employees.find(x => x.id == eId);
                 if(!emp) return;
                 appData.records[p][eId].forEach(r => {
-                    if(r && (parseFloat(r.amount) > 0)) {
+                    if(r && !r.isPhantom && (parseFloat(r.amount) > 0)) {
                         const amtNum = parseFloat(r.amount);
                         mTotal += amtNum;
                         let actualRole = r.role || emp.role;
@@ -704,7 +704,7 @@ function renderChart(roleFilter) {
     const dataSeries = employees.map((e, idx) => {
         const sId = `line-${idBase}-${idx}`;
         const vals = chartPeriods.map(p => {
-            if(appData.records[p] && appData.records[p][e.id]) return appData.records[p][e.id].reduce((s,r)=>s+(r?parseFloat(r.amount)||0:0),0);
+            if(appData.records[p] && appData.records[p][e.id]) return appData.records[p][e.id].reduce((s,r)=>s+(r && !r.isPhantom ? parseFloat(r.amount)||0:0),0);
             return 0;
         });
         return { name: e.name, values: vals, color: PALETTE[idx % PALETTE.length], id: sId, visible: !hiddenSeries[sId] };
