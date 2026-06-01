@@ -47,13 +47,16 @@ const DEFAULT_EMPLOYEES = [
 ];
 
 const USER_ROLES = {
+    // 4
+    "jose.solano@icglobal.com.ve": "manager",
+    "frank.medina@icglobal.com.ve": "manager",
     // 3
-    "jose.solano@icglobal.com.ve": "adminglobal",
     "erick.patino@icglobal.com.ve": "adminglobal",
     "gilbert.gomez@icglobal.com.ve": "adminglobal",
     // 2
     "rrhh@icglobal.com.ve": "rrhh",
     "administracion@icglobal.com.ve": "rrhh",
+    "julissa@icglobal.com.ve": "rrhh",
     // 1 
     "asistentepzo@icglobal.com.ve": "asistente"
 };
@@ -1221,10 +1224,21 @@ function applyRoles(email) {
         // Tiene acceso a todo, no ocultamos nada
         switchTab('config');
     } 
+    else if (role === "manager") {
+       // Ocultar todo menos Sugerencias
+        document.getElementById('nav-config').style.display = 'none';
+        document.getElementById('nav-nomina').style.display = 'none';
+        document.getElementById('nav-registro').style.display = 'none';
+        switchTab('sugerencias');
+    }
     else if (role === "rrhh") {
-        // Ocultar Gerencia
+       // Ocultar todo menos Sugerencias
+        document.getElementById('nav-config').style.display = 'none';
+        document.getElementById('nav-nomina').style.display = 'none';
+        document.getElementById('nav-registro').style.display = 'none';
+        document.getElementById('nav-graficos').style.display = 'none';
         document.getElementById('nav-analytics').style.display = 'none';
-        switchTab('nomina');
+        switchTab('sugerencias');
     } 
     else if (role === "asistente") {
         // Ocultar todo menos Registro Rápido
