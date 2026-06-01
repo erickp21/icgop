@@ -839,14 +839,6 @@ function inspectData(){if(!appData.records){alert("No hay datos cargados.");retu
 function openBaseModal(){const container=document.getElementById('baseList');container.innerHTML='';appData.employees.forEach(emp=>{const hist=appData.historical2025[emp.id]||{year:0};const row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.innerHTML=`<span style="font-size:0.85rem; font-weight:bold;">${emp.name}</span><input type="number" id="base_year_${emp.id}" value="${hist.year}" class="compact-input" style="width:100px; text-align:right;">`;container.appendChild(row);});document.getElementById('baseModal').classList.add('open');}
 function saveBases(){appData.employees.forEach(emp=>{const val=parseFloat(document.getElementById(`base_year_${emp.id}`).value)||0;if(!appData.historical2025[emp.id])appData.historical2025[emp.id]={month:0,year:0};appData.historical2025[emp.id].year=val;});save();document.getElementById('baseModal').classList.remove('open');renderAnalytics();}
 
-function resetData(){
-    if(confirm("⚠️ ¿Borrar todo de la nube? Esto no se puede deshacer.")){
-        database.ref('icg_master_data').remove().then(() => {
-            location.reload();
-        });
-    }
-}
-
 /* --- LÓGICA DE REGISTRO RÁPIDO Y TABULADORES --- */
 const TABULADORES = {
     "Sidor": {
