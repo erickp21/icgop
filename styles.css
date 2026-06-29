@@ -308,3 +308,7 @@ td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--borde
     color: #ef4444 !important; /* Texto rojo intenso */
     border: 1px dashed #ef4444 !important; /* Borde punteado para destacarlo */
 }
+
+/* --- ESTILO PARA EMPLEADOS INACTIVOS (SOFT DELETE) --- */
+.st-inactive { color: #64748b; font-weight: bold; }
+.inactive-row { opacity: 0.4; filter: grayscale(100%); background-color: #f8fafc; }
