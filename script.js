@@ -308,7 +308,16 @@ function renderTable(period) {
             } 
         });
         
+        // Si el empleado está Fuera de Servicio y NO hizo dinero este mes, lo saltamos y no lo dibujamos.
+        if (emp.status === "Fuera de Servicio" && mTotal === 0) return;
+
         const tr = document.createElement('tr');
+        
+        // Si llegó hasta aquí y está Fuera de Servicio (es decir, mTotal > 0), le ponemos la clase gris.
+        if (emp.status === "Fuera de Servicio") {
+            tr.className = 'inactive-row';
+        }
+        
         tr.innerHTML = `<td class="sticky-col" style="text-align:left; padding-left:10px;"><div style="font-weight:600; font-size:0.8rem;">${emp.name}</div><div style="font-size:0.65rem; color:#64748b">${emp.role}</div></td>${cells}<td class="total-cell-month center-text">${mTotal}</td><td class="total-cell-year center-text">${yTotal}</td>`;
         tbody.appendChild(tr);
         const trPrint = document.createElement('tr');
@@ -432,7 +441,7 @@ function renderSuggestions() {
     
     ROLES.forEach(role => {
         const group = appData.employees.filter(e => e.role === role);
-        const activeGroup = group.filter(e => e.status !== "Vacaciones" && e.status !== "Reposo");
+        const activeGroup = group.filter(e => e.status !== "Vacaciones" && e.status !== "Reposo" && e.status !== "Fuera de Servicio");
         
         const ranking = activeGroup.map(emp => {
             let curReal = 0, curRank = 0; // curReal para mostrar, curRank para ordenar
@@ -771,13 +780,14 @@ function renderConfigLists(){
             <option value="Vacaciones" ${e.status==='Vacaciones'?'selected':''}>🔴 Vacac.</option>
             <option value="Reposo" ${e.status==='Reposo'?'selected':''}>🔴 Reposo</option>
             <option value="No Justificado" ${e.status==='No Justificado'?'selected':''}>🔴 No Just.</option>
+            <option value="Fuera de Servicio" ${e.status==='Fuera de Servicio'?'selected':''}>⚫ Inactivo</option>
         </select>
     </div>`,(id)=>{deleteEmployee(id);});
     
     renderL('siteList',appData.sites,s=>s,i=>appData.sites.splice(i,1));
     renderL('activityList',appData.activities,a=>a,i=>appData.activities.splice(i,1));
 }
-function getStatusClass(s){if(s==='Disponible')return 'st-active';if(s==='En Guardia')return 'st-busy';return 'st-vacation';}
+function getStatusClass(s){if(s==='Disponible')return 'st-active';if(s==='En Guardia')return 'st-busy';if(s==='Fuera de Servicio')return 'st-inactive';return 'st-vacation';}
 function fillSelect(id,opts,sel){const el=document.getElementById(id);el.innerHTML='';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.innerText=o;if(o===sel)op.selected=true;el.appendChild(op);});}
 function fillSelectOther(id,opts,sel){const el=document.getElementById(id);el.innerHTML='';let found=false;opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.innerText=o;if(o===sel){op.selected=true;found=true;}el.appendChild(op);});const otherOp=document.createElement('option');otherOp.value='OTRO';otherOp.innerText='OTRO (Escribir manual)';el.appendChild(otherOp);const baseId=id.replace('editor','');const otherInput=document.getElementById(id+'Other');if(sel&&!found){el.value='OTRO';otherInput.value=sel;otherInput.classList.add('visible');}else{otherInput.classList.remove('visible');otherInput.value='';}}
 function checkOther(type){const sel=document.getElementById('editor'+type);const inp=document.getElementById('editor'+type+'Other');if(sel.value==='OTRO')inp.classList.add('visible');else inp.classList.remove('visible');}
@@ -1030,7 +1040,7 @@ function renderQuickRows() {
         <div class="qr-row">
             <select class="form-control qr-emp-select" onchange="updateQuickRow(${i}, 'empId', this.value)">
                 <option value="">-- Seleccionar Empleado --</option>
-                ${appData.employees.map(e => `<option value="${e.id}" ${e.id == row.empId ? 'selected' : ''}>${e.name}</option>`).join('')}
+                ${appData.employees.filter(e => e.status !== 'Fuera de Servicio' || e.id == row.empId).map(e => `<option value="${e.id}" ${e.id == row.empId ? 'selected' : ''}>${e.name}</option>`).join('')}
             </select>
             
             <select class="form-control qr-role-select" onchange="updateQuickRow(${i}, 'role', this.value)">
